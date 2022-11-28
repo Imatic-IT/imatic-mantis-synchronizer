@@ -1,0 +1,12 @@
+config.php
+core/config/config.php
+task.md
+task_1.md
+zaloha.md
+.DS_Store
+
+
+core/helper.php
+files/jquery.simplePagination.js
+files/simplePagination.css
+
