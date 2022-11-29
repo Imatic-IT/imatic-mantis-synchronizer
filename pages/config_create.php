@@ -16,11 +16,14 @@ $t_path = config_get_global('plugin_path') . $t_current . '/core/config/';
 $file = $t_path . 'config.php';
 
 if (file_exists($file)) {
+    require $file;
+
     $file_exists = 'Replace';
     $file_exists_msg = 'File exists do you want replace them ?';
 } else {
     $file_exists = 'Create';
     $file_exists_msg = '';
+    $api_url = '';
 }
 
 ?>
@@ -54,7 +57,7 @@ if (file_exists($file)) {
                                             <?php echo 'API URL' ?><br>
                                         </th>
                                         <td>
-                                            <input value="" type="text" name="api_url">
+                                            <input  type="text" name="api_url" value="<?php echo $api_url ?>">
                                         </td>
                                     </tr>
                                 </table>
@@ -62,8 +65,7 @@ if (file_exists($file)) {
                         </div>
                         <div class="widget-toolbox padding-8 clearfix">
 
-                            <input type="submit" class="btn btn-primary btn-white btn-round"
-                                   value="<?php echo $file_exists ?>"/>
+                            <input type="submit" class="btn btn-primary btn-white btn-round" value="<?php echo $file_exists ?>" />
                             <label for=""><?php echo $file_exists_msg ?></label>
                         </div>
                     </div>
@@ -71,7 +73,6 @@ if (file_exists($file)) {
             </form>
         </div>
     </div>
-
 
 <?php
 

@@ -1,8 +1,5 @@
 <?php
 
-//require_api('authentication_api.php');
-//require_api('access_api.php');
-
 auth_reauthenticate();
 access_ensure_global_level(config_get('manage_plugin_threshold'));
 
@@ -20,7 +17,6 @@ if (isset($_POST) && !empty($_POST)) {
     $t_path = config_get_global('plugin_path') . $t_current . '/core/config/';
     $file = $t_path . 'config.php';
 
-
     $token = var_export($_POST['user_api_token'], true);
     $url = var_export($_POST['api_url'], true);
 
@@ -30,7 +26,5 @@ if (isset($_POST) && !empty($_POST)) {
 
     file_put_contents($file, $vars);
 
-
-    print_header_redirect(plugin_page('config'));
-
+    header('Location: ' . $_SERVER['HTTP_REFERER']);
 }
