@@ -44,10 +44,14 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         return [
             'write_log_to_db' => true,
             'project_for_synchronize' =>
-                [
-                    2,
-                    3
-                ]
+            [
+                3
+            ],
+            'custom_field' => [
+                'create' => true,
+                'name' => 'Jira issue link',
+                'id' => ''
+            ]
         ];
     }
 
@@ -63,11 +67,11 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
         return [
             0 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_bug'), "
-				issue_id                        								I,	
-				intern_issue                    								I	
+				issue_id                        								I,
+				intern_issue                    								I
 			"]],
             1 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_bug_queue'), "
-				issue_id                      I,	
+				issue_id                      I,
                 method_type	        		  C(32)             DEFAULT \" ' ' \",
 				resended					  L                 DEFAULT \" '0' \" ,
 				issue						  JSON,
@@ -94,9 +98,17 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             'EVENT_UPDATE_BUG_DATA' => 'event_bug_hooks',
             'EVENT_BUGNOTE_ADD' => 'bugnote_add_hook',
             'EVENT_LAYOUT_BODY_END' => 'layout_body_end_hook',
+            'EVENT_CORE_READY' => 'core_ready_hook',
         ];
     }
 
+    function core_ready_hook()
+    {
+        $custom_field = plugin_config_get('custom_field');
+        if (!$custom_field['id'] && $custom_field['create'] != false) {
+            require 'core/create_custom_field.php';
+        }
+    }
 
     /*
      * On bugnote create
@@ -184,7 +196,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         }
 
         return true;
-
     }
 
 
@@ -195,8 +206,8 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         $all_logs = $logger->getAllLogs();
 
         // uncomment for pagination // Pagination is not finished correctly // also in gitignore pagination files
-//        echo '<script type="text/javascript" src="' . plugin_file('jquery.simplePagination.js') . '"></script>';
-//        echo '<link type="text/css" rel="stylesheet" href="' . plugin_file('simplePagination.css') . '"/>';
+        //        echo '<script type="text/javascript" src="' . plugin_file('jquery.simplePagination.js') . '"></script>';
+        //        echo '<link type="text/css" rel="stylesheet" href="' . plugin_file('simplePagination.css') . '"/>';
         echo '<script id="imaticSynchronizerLogs" data-data="' . htmlspecialchars(json_encode($all_logs)) . '"  src="' . plugin_file('filter_logs.js') . '"></script>';
     }
 }
