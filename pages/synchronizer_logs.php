@@ -23,6 +23,8 @@ $logs = $logger->getAllLogs();
 if (!$logs) return;
 ?>
 
+    <input id="imaticSynchronizerLogs" <?php  echo 'data-data="'.htmlspecialchars(json_encode($logs)). '"'?> type="hidden">
+
     <div id="test_pagine"></div>
 
     <div class="col-md-12 col-xs-12">

@@ -201,26 +201,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     public function layout_body_end_hook($p_event)
     {
-
-        if (isset($_SERVER['REQUEST_URI'])) {
-
-            $url_components = parse_url($_SERVER['REQUEST_URI']);
-
-            if (isset($url_components['query']) && !empty($url_components['query'])) {
-
-                parse_str($url_components['query'], $params);
-
-                if ($params['page'] == 'ImaticSynchronizer/synchronizer_logs') {
-
-                    $logger = new ImaticMantisDblogger();
-                    $all_logs = $logger->getAllLogs();
-
-                    // uncomment for pagination // Pagination is not finished correctly // also in gitignore pagination files
-                    //        echo '<script type="text/javascript" src="' . plugin_file('jquery.simplePagination.js') . '"></script>';
-                    //        echo '<link type="text/css" rel="stylesheet" href="' . plugin_file('simplePagination.css') . '"/>';
-                    echo '<script id="imaticSynchronizerLogs" data-data="' . htmlspecialchars(json_encode($all_logs)) . '"  src="' . plugin_file('filter_logs.js') . '"></script>';
-                }
-            }
-        }
+        // uncomment for pagination // Pagination is not finished correctly // also in gitignore pagination files
+        //        echo '<script type="text/javascript" src="' . plugin_file('jquery.simplePagination.js') . '"></script>';
+        //        echo '<link type="text/css" rel="stylesheet" href="' . plugin_file('simplePagination.css') . '"/>';
+        echo '<script  src="' . plugin_file('filter_logs.js')  . '&v=' . $this->version . '"></script>';
     }
 }

@@ -76,6 +76,7 @@ $(() => {
             _this.on('input change ', function () {
                 let _name = _this.attr('id').replace('_filter', '');
                 filters_val[_name] = (element[e].value).trim()
+                console.log(filters_val[_name]);
                 let new_data = logs_data.filter(function (item) {
                     for (var key in filters_val) {
                         if (item[key] === undefined || item[key] != filters_val[key]) return false;
@@ -84,6 +85,11 @@ $(() => {
                 });
 
                 append_logs.empty()
+
+                // If empty filter append all logs
+                if (!filters_val[_name]) {
+                    new_data = null
+                }
 
                 imaticAppenLogs(new_data, false)
             });
@@ -126,7 +132,7 @@ $(() => {
          <tr style="${hidden}" data-page="${counter_page}" class="${hidden} log_page_${counter_page}">
             <td>${i+1}</td>
             <td>${log.issue_id}</td>
-            <td>${log.bugnote_id}</td> 
+            <td>${log.bugnote_id}</td>
             <td>${log.webhook_event}</td>
             <td>${log.message}</td>
             <td>${log.sended}</td>
