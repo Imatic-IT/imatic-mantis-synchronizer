@@ -1,0 +1,6 @@
+.webhook_edit_active a {
+    padding: 0.3em;
+    background-color: rgb(63, 69, 69);
+    text-decoration: none;
+    color: #ffffff;
+}

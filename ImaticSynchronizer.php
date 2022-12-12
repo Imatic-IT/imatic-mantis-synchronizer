@@ -201,9 +201,14 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     public function layout_body_end_hook($p_event)
     {
-        // uncomment for pagination // Pagination is not finished correctly // also in gitignore pagination files
-        //        echo '<script type="text/javascript" src="' . plugin_file('jquery.simplePagination.js') . '"></script>';
-        //        echo '<link type="text/css" rel="stylesheet" href="' . plugin_file('simplePagination.css') . '"/>';
+
+        echo  '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/style.css'). '" />';
+
         echo '<script  src="' . plugin_file('filter_logs.js')  . '&v=' . $this->version . '"></script>';
+
+        //SELECT 2
+        echo  '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/select2.min.css'). '" />';
+        echo '<script  src="' . plugin_file('js/select2.full.min.js').'"></script>';
+        echo '<script  src="' . plugin_file('js/webhook.js')  . '&v=' . $this->version . '"></script>';
     }
 }
