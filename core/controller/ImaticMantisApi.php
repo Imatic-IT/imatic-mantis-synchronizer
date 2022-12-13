@@ -4,8 +4,6 @@ namespace Imatic\Mantis\Synchronizer;
 
 class ImaticMantisApi
 {
-    private $url;
-    private $token;
     private $issue_model;
     private $event_issue_type;
     private $callapi_results;
@@ -14,11 +12,6 @@ class ImaticMantisApi
 
     public function __construct()
     {
-        require __DIR__ . '../../config/config.php';
-
-        $this->url = $api_url;
-        $this->token = $user_api_token;
-
         $this->issue_model = new ImaticMantisIssueModel;
         $this->db_looger = new ImaticMantisDbLogger;
     }
@@ -28,7 +21,10 @@ class ImaticMantisApi
         $this->issue_data = $issue_data;
         $this->event_issue_type = EVENT_REPORT_BUG;
 
-        $this->callapi_results = $this->callApi($issue_data, 'POST');
+        //-----------------------
+        $webhook = new ImaticWebhook();
+
+        $this->callapi_results = (object)$webhook->sendWebhook($issue_data);
 
         //If error insert data to queue table, for later synchronization
         if (isset($this->callapi_results->error) && !empty($this->callapi_results->error)) {
@@ -56,18 +52,16 @@ class ImaticMantisApi
         // If event is update or update->created bugnote
         if ($this->event_issue_type = isset($this->issue_data->notes) && !empty($this->issue_data->notes) ? EVENT_BUGNOTE_ADD : EVENT_UPDATE_BUG_DATA) ;
 
-        //call api
-        $this->callapi_results = $this->callApi($issue_data, 'PATCH');
+        $webhook = new ImaticWebhook();
+
+        $this->callapi_results = (object)$webhook->sendWebhook($issue_data);
 
         //If error insert data to queue table, for later synchronization
-        if (isset($this->callapi_results->error) && !empty($this->callapi_results->error)) { // STOPKA TU TREBA ROZDELIT UPDATE issue od update note v logery dať preč processs result dat len logger a tu do queue
-
+        if (isset($this->callapi_results->error) && !empty($this->callapi_results->error)) {
             $this->issue_model->imaticInsertNotSuccessIssueData($this->issue_data, $this->issue_data->issue->issue_id, $this->event_issue_type);
-
         }
 
         $this->imaticCallDbLog();
-
 
         return $this->type_results;
     }
@@ -119,22 +113,4 @@ class ImaticMantisApi
         $logger->log();
 
     }
-
-
-    // Call curl and send
-    private function callApi($issue_data, $method): ImaticMantisCurl //: MantisResponse
-    {
-        $curl = new ImaticMantisCurl();
-        $curl->url($this->url);
-        $curl->data(json_encode($issue_data));
-        $curl
-            ->handlerToken($this->token)
-            ->method($method)
-            ->send();
-
-        $curl->close();
-
-        return $curl;
-    }
-
 }

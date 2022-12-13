@@ -3,12 +3,13 @@
 require 'core/require.php';
 
 //CONTROLLERS
-use Imatic\Mantis\Synchronizer\ImaticMantisEventListener;
+use Imatic\Mantis\Synchronizer\ImaticWebhook;
 use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
 
 
 //MODELS
 use Imatic\Mantis\Synchronizer\ImaticMantisIssueModel;
+use Imatic\Mantis\Synchronizer\ImaticMantisEventListener;
 
 //constant
 require 'core/constant.php';
@@ -44,9 +45,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         return [
             'write_log_to_db' => true,
             'project_for_synchronize' =>
-            [
-                3
-            ],
+                [
+                    3
+                ],
             'custom_field' => [
                 'create' => true,
                 'name' => 'Jira issue link',
@@ -104,6 +105,14 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     function core_ready_hook()
     {
+
+        if (isset($_POST) && !empty($_POST)) {
+            $webhook = new \Imatic\Mantis\Synchronizer\ImaticWebhook();
+
+//            $webhook->sendWebhook();
+//            pre_r($_POST);
+        }
+
         $custom_field = plugin_config_get('custom_field');
         if (!$custom_field['id'] && $custom_field['create'] != false) {
             require 'core/create_custom_field.php';
@@ -147,12 +156,12 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         $p_bug->webhookEvent = constant($p_event);
 
         //Check if issue is intern and save isssue as intern to DB // case update issue check if issue is intern if is intern synchronize will be stopped
-        if (isset($_POST['synchronize_to_jira']) && !empty($_POST['synchronize_to_jira']) && $_POST['synchronize_to_jira'] === 'intern_issue') {
+        if (isset($_POST['synchronize_issue']) && $_POST['synchronize_issue'] == 0) {
 
             $issue_model->imaticInsertInternIssue($issue_id);
+
             return $p_bug;
         }
-
 
         switch ($p_event) {
             case 'EVENT_UPDATE_BUG_DATA':
@@ -175,40 +184,45 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             return;
         }
 
-        require __DIR__ . '/inc/send_to_jira_checkbox.php';
+        require __DIR__ . '/inc/synchronize_issue_checkbox.php';
     }
 
 
     private function ImaticCheckProjectForSyhnchronize()
     {
 
-        $projects_for_synch = plugin_config_get('project_for_synchronize');
+        $wh = new ImaticWebhook();
+
+        $webhooks_projects = $wh->getWebhooksProjects();
+
 
         // If plugin ImaticProjectSelection not installed this imaticProject not exists in url
         if (!empty($_GET['imaticProject'])) {
-            $poject_id = gpc_get_int('imaticProject');
+            $project_id = gpc_get_int('imaticProject');
         } else {
-            $poject_id = helper_get_current_project();
+            $project_id = helper_get_current_project();
         }
 
-        if (!in_array($poject_id, (array)$projects_for_synch)) {
+        if (!in_array($project_id, $webhooks_projects)) {
+
             return;
-        }
 
+        }
         return true;
+
     }
 
 
     public function layout_body_end_hook($p_event)
     {
 
-        echo  '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/style.css'). '" />';
+        echo '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/style.css') . '" />';
 
-        echo '<script  src="' . plugin_file('filter_logs.js')  . '&v=' . $this->version . '"></script>';
+        echo '<script  src="' . plugin_file('filter_logs.js') . '&v=' . $this->version . '"></script>';
 
         //SELECT 2
-        echo  '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/select2.min.css'). '" />';
-        echo '<script  src="' . plugin_file('js/select2.full.min.js').'"></script>';
-        echo '<script  src="' . plugin_file('js/webhook.js')  . '&v=' . $this->version . '"></script>';
+        echo '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/select2.min.css') . '" />';
+        echo '<script  src="' . plugin_file('js/select2.full.min.js') . '"></script>';
+        echo '<script  src="' . plugin_file('js/webhook.js') . '&v=' . $this->version . '"></script>';
     }
 }

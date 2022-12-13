@@ -9,7 +9,7 @@ class ImaticWebhook
     /**
      * @var
      */
-    private $data;
+    private $sended_data;
     /**
      * @var
      */
@@ -18,6 +18,8 @@ class ImaticWebhook
      * @var string
      */
     private $file;
+
+    private $webhooks_decoded;
 
     /**
      *
@@ -28,12 +30,12 @@ class ImaticWebhook
     }
 
     /**
-     * @param $data
+     * @param $sended_data
      * @return void
      */
-    public function createWebhook($data)
+    public function createWebhook($sended_data)
     {
-        $this->data = $data;
+        $this->data = $sended_data;
 
         if (!file_exists($this->file)) {
             fopen($this->file, "w");
@@ -137,5 +139,60 @@ class ImaticWebhook
         $this->webhooks_json = json_decode(file_get_contents($this->file), true);
 
         return $this->webhooks_json[$id];
+    }
+
+    public function sendWebhook($sended_data, $user = null)
+    {
+        $this->webhooks_decoded = $this->getWebhooks();
+
+        foreach ($this->webhooks_decoded as $webhook) {
+
+            if (in_array($sended_data->issue->project_id, $webhook['projects'])) {
+
+                // need implement into webhooks
+                $apiKey = "your-api-key";
+
+                $headers = array(
+                    'Content-Type: application/json',
+                    'Authorization: Bearer ' . $apiKey,
+                );
+
+                $ch = curl_init($webhook['url']);
+
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+                curl_setopt($ch, CURLOPT_POST, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($sended_data));
+
+                $response = curl_exec($ch);
+
+                if ($response === false) {
+                    return [
+                        'status' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+                        'error' => "CURL Error: " . curl_error($ch),
+                    ];
+                }
+
+                return [
+                    'status' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+                    'body' => json_decode($response, true),
+                ];
+            }
+        }
+    }
+
+    public function getWebhooksProjects()
+    {
+
+        $this->webhooks_decoded = $this->getWebhooks();
+
+        $projects = [];
+        foreach ($this->webhooks_decoded as $webhook) {
+            $projects = array_unique(array_merge($webhook['projects'], $projects));
+        }
+
+        return $projects;
     }
 }

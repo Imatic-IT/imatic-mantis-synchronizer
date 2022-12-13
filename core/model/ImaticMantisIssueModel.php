@@ -8,10 +8,14 @@ class ImaticMantisIssueModel
 {
 
     private $issue_data;
-    private array $parsed_issue_data;
+    private  $parsed_issue_data;
     private stdClass $parsed_issue_data_object;
     private ImaticMantisBugnotes $bugnote;
 
+    /**
+     * @param $issue_data
+     * @return stdClass
+     */
     public function imaticParseData($issue_data): stdClass
     {
 
@@ -28,6 +32,7 @@ class ImaticMantisIssueModel
         $p->issue_event_type_name = substr($this->issue_data->webhookEvent, strpos($this->issue_data->webhookEvent, ":") + 1);
 
         $p->issue->issue_id = $this->issue_data->id;
+        $p->issue->project_id = $this->issue_data->project_id;
         $p->issue->summary = $this->issue_data->summary;
         $p->issue->description = $this->issue_data->description;
         $p->issue->additional_information = $this->issue_data->additional_information;
