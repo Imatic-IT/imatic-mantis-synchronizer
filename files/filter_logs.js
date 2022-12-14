@@ -104,8 +104,11 @@ $(() => {
 //-----------------Append logs--------------
     function imaticAppenLogs(logs_data = null, create_pagination = true) {
 
-        if (!logs_data) {
+        if (logs_data == null) {
             logs_data = getLogsData()
+        }
+        if (!logs_data) {
+            return;
         }
 
 
@@ -128,16 +131,18 @@ $(() => {
 
             }
 
+            console.log(log)
             append_logs.append(`
          <tr style="${hidden}" data-page="${counter_page}" class="${hidden} log_page_${counter_page}">
             <td>${i+1}</td>
             <td>${log.issue_id}</td>
             <td>${log.bugnote_id}</td>
+            <td>${log.log_level}</td>
             <td>${log.webhook_event}</td>
-            <td>${log.message}</td>
             <td>${log.sended}</td>
             <td>${format_date}</td>
-            <td>${log.log_level}</td>
+            <td>${log.webhook_id}</td>
+            <td>${log.webhook_name}</td>
          </tr>`)
 
 

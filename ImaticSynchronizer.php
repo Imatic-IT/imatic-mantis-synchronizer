@@ -88,6 +88,17 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 				sended						  L                  DEFAULT \" '0' \" ,
                 date_submitted			      I	        NOTNULL  DEFAULT '" . db_now() . "'
 			"]],
+            3 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_queue'), "
+				webhook_id						I,
+				webhook_name					C(32)	         	 DEFAULT \" ' ' \"	
+			"]],
+            4 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+				webhook_id						I,
+				webhook_name					C(32)	         	 DEFAULT \" ' ' \"	
+			"]],
+            5 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+                message	        					
+			"]],
         ];
     }
 

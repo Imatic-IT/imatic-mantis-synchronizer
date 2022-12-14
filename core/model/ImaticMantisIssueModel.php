@@ -8,7 +8,7 @@ class ImaticMantisIssueModel
 {
 
     private $issue_data;
-    private  $parsed_issue_data;
+    private $parsed_issue_data;
     private stdClass $parsed_issue_data_object;
     private ImaticMantisBugnotes $bugnote;
 
@@ -54,7 +54,7 @@ class ImaticMantisIssueModel
     }
 
 
-    public function imaticInsertNotSuccessIssueData($issue, $issue_id, $method_type)
+    public function imaticInsertNotSuccessIssueData($issue, $issue_id, $method_type, $webhook_id, $webhook_name)
     {
         $db = db_get_table('imatic_synchronizer_bug_queue');
 
@@ -63,11 +63,11 @@ class ImaticMantisIssueModel
         $db_now = db_now();
         db_param_push();
         $t_query = 'INSERT INTO ' . $db . '
-                        ( issue_id, method_type, issue, last_updated)
+                        ( issue_id, method_type, issue, last_updated, webhook_id, webhook_name)
                       VALUES
-                        ( ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ')';
+                        ( ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ')';
 
-        db_query($t_query, array((int)$issue_id, $method_type, $issue, $db_now));
+        db_query($t_query, array((int)$issue_id, $method_type, $issue, $db_now, $webhook_id, $webhook_name));
 
         return db_affected_rows($db);
     }

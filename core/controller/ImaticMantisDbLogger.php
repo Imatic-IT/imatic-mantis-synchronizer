@@ -16,6 +16,8 @@ class ImaticMantisDbLogger
     public $sended = true;
     public $db_log_moddel;
     public $all_logs;
+    public $webhook_id;
+    public $webhook_name;
 
 
     public function __construct()
@@ -102,6 +104,37 @@ class ImaticMantisDbLogger
         return $this->db_log_moddel->imaticGetLogs();
     }
 
+    /**
+     * @return mixed
+     */
+    public function getWebhookId()
+    {
+        return $this->webhook_id;
+    }
+
+    /**
+     * @param mixed $webhook_id
+     */
+    public function setWebhookId($webhook_id)
+    {
+        $this->webhook_id = $webhook_id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWebhookName()
+    {
+        return $this->webhook_name;
+    }
+
+    /**
+     * @param mixed $webhook_name
+     */
+    public function setWebhookName($webhook_name)
+    {
+        $this->webhook_name = $webhook_name;
+    }
 
 
 }

@@ -141,47 +141,43 @@ class ImaticWebhook
         return $this->webhooks_json[$id];
     }
 
-    public function sendWebhook($sended_data, $user = null)
+
+    public function sendWebhook($sended_data, $url)
     {
-        $this->webhooks_decoded = $this->getWebhooks();
 
-        foreach ($this->webhooks_decoded as $webhook) {
+        // need implement into webhooks
+        $apiKey = "your-api-key";
 
-            if (in_array($sended_data->issue->project_id, $webhook['projects'])) {
+        $headers = array(
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $apiKey,
+        );
 
-                // need implement into webhooks
-                $apiKey = "your-api-key";
+        $ch = curl_init($url);
 
-                $headers = array(
-                    'Content-Type: application/json',
-                    'Authorization: Bearer ' . $apiKey,
-                );
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 
-                $ch = curl_init($webhook['url']);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($sended_data));
 
-                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        $response = curl_exec($ch);
 
-                curl_setopt($ch, CURLOPT_POST, true);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($sended_data));
+        if ($response == false) {
 
-                $response = curl_exec($ch);
-
-                if ($response === false) {
-                    return [
-                        'status' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
-                        'error' => "CURL Error: " . curl_error($ch),
-                    ];
-                }
-
-                return [
-                    'status' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
-                    'body' => json_decode($response, true),
-                ];
-            }
+            return [
+                'status' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+                'error' => "CURL Error: " . curl_error($ch),
+            ];
         }
+
+        return [
+            'status' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
+            'body' => json_decode($response, true),
+        ];
     }
+
 
     public function getWebhooksProjects()
     {

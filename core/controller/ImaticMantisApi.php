@@ -6,9 +6,8 @@ class ImaticMantisApi
 {
     private $issue_model;
     private $event_issue_type;
-    private $callapi_results;
+    private $webhook_result;
     private $issue_data;
-    private $bugnote = null;
 
     public function __construct()
     {
@@ -22,95 +21,80 @@ class ImaticMantisApi
         $this->event_issue_type = EVENT_REPORT_BUG;
 
         //-----------------------
-        $webhook = new ImaticWebhook();
+        $wh = new ImaticWebhook();
 
-        $this->callapi_results = (object)$webhook->sendWebhook($issue_data);
+        $webhooks_decoded = $wh->getWebhooks();
 
-        //If error insert data to queue table, for later synchronization
-        if (isset($this->callapi_results->error) && !empty($this->callapi_results->error)) {
 
-            $queue_issue_data = $this->issue_model->imaticQueueIdAndMethodExists($this->issue_data->issue->issue_id, $this->event_issue_type);
+        foreach ($webhooks_decoded as $key => $webhook) {
 
-            if (!$queue_issue_data && empty($queue_issue_data)) {
-                $this->issue_model->imaticInsertNotSuccessIssueData($this->issue_data, $this->issue_data->issue->issue_id, $this->event_issue_type);
+            if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
+
+                $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
+
+                if (isset($this->webhook_result['error']) && !empty($this->webhook_result['error']) || $this->webhook_result['status'] >= 400) {
+                    $queue_issue_data = $this->issue_model->imaticQueueIdAndMethodExists($this->issue_data->issue->issue_id, $this->event_issue_type);
+
+                    if (!$queue_issue_data && empty($queue_issue_data)) {
+                        $this->issue_model->imaticInsertNotSuccessIssueData($this->issue_data, $this->issue_data->issue->issue_id, $this->event_issue_type, $key, $webhook['name']);
+                    }
+                }
+
+                $this->imaticCallDbLog($key, $webhook['name']);
             }
         }
-
-        $this->imaticCallDbLog();
-
-        return $this->type_results;
     }
 
 
     public function updateIssue($issue_data, $note = null)
     {
-        // for log just bugnote not issue update
-        $this->bugnote = $note;
 
         $this->issue_data = $issue_data;
 
         // If event is update or update->created bugnote
         if ($this->event_issue_type = isset($this->issue_data->notes) && !empty($this->issue_data->notes) ? EVENT_BUGNOTE_ADD : EVENT_UPDATE_BUG_DATA) ;
 
-        $webhook = new ImaticWebhook();
+        $wh = new ImaticWebhook();
 
-        $this->callapi_results = (object)$webhook->sendWebhook($issue_data);
+        $webhooks_decoded = $wh->getWebhooks();
 
-        //If error insert data to queue table, for later synchronization
-        if (isset($this->callapi_results->error) && !empty($this->callapi_results->error)) {
-            $this->issue_model->imaticInsertNotSuccessIssueData($this->issue_data, $this->issue_data->issue->issue_id, $this->event_issue_type);
+        foreach ($webhooks_decoded as $key => $webhook) {
+            if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
+
+                $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
+
+                if ($this->webhook_result['status'] >= 400) {
+
+                    $this->issue_model->imaticInsertNotSuccessIssueData($this->issue_data, $this->issue_data->issue->issue_id, $this->event_issue_type, $key, $webhook['name']);
+                }
+                $this->imaticCallDbLog($key, $webhook['name']);
+            }
         }
-
-        $this->imaticCallDbLog();
-
-        return $this->type_results;
     }
 
 
-    private function imaticCallDbLog()
+    private function imaticCallDbLog($webhook_id, $webhook_name)
     {
-
         $logger = new ImaticMantisDbLogger();
 
-        $this->type_results = isset($this->callapi_results->error) && !empty($this->callapi_results->error) ? 'error' : 'info';
+        if ($this->webhook_result['status'] >= 400 || $this->webhook_result['status'] == 0) {
+            $this->type_results = 'error';
+            $logger->setSended(false);
 
-        switch ($this->event_issue_type) {
-            case EVENT_REPORT_BUG:
-                if ($this->type_results == 'error') {
-                    $logger->setSended(false);
-                    $logger->setMessage('Issue with ID: ' . $this->issue_data->issue->issue_id . ' was not successfuly sended. [Webhook event] ' . $this->event_issue_type);
-                } else {
-                    $logger->setMessage('Issue with ID: ' . $this->issue_data->issue->issue_id . ' was succesfully sended. [Webhook event] ' . $this->event_issue_type);
-                }
-                break;
-            case EVENT_UPDATE_BUG_DATA:
-                if (!$this->bugnote) {
-                    if ($this->type_results == 'error') {
-                        $logger->setSended(false);
-                        $logger->setMessage('Issue with ID: ' . $this->issue_data->issue->issue_id . ' was not successfuly updated. [Webhook event] ' . $this->event_issue_type);
-                    } else {
-                        $logger->setMessage('Issue with ID: ' . $this->issue_data->issue->issue_id . ' was succesfully updated. [Webhook event] ' . $this->event_issue_type);
-                    }
-                }
-                break;
-            case EVENT_BUGNOTE_ADD:
-                if ($this->bugnote) {
-                    $logger->setBugnoteId($this->issue_data->notes[0]['id']);
-                    if ($this->type_results == 'error') {
-                        $logger->setSended(false);
-                        $logger->setMessage('Issue bugnote with issue with ID: ' . $this->issue_data->issue->issue_id . ' was not successfuly updated. [Webhook event] ' . $this->event_issue_type);
-                    } else {
-                        $logger->setMessage('Issue bugnote with issue with ID: ' . $this->issue_data->issue->issue_id . ' was succesfully updated. [Webhook event] ' . $this->event_issue_type);
-                    }
-                }
-                break;
+        } else {
+            $this->type_results = 'success';
+        }
+
+        if (isset($this->issue_data->notes[0]['id']) && !empty($this->issue_data->notes[0]['id'])) {
+            $logger->setBugnoteId($this->issue_data->notes[0]['id']);
         }
 
         $logger->setIssueId($this->issue_data->issue->issue_id);
         $logger->setLogLevel($this->type_results);
         $logger->setWebhookEvent($this->event_issue_type);
         $logger->setProjectId(bug_get_row($this->issue_data->issue->issue_id)['project_id']); //Optimize  ?
+        $logger->setWebhookId($webhook_id);
+        $logger->setWebhookName($webhook_name);
         $logger->log();
-
     }
 }

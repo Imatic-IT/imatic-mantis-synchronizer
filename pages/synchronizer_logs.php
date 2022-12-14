@@ -54,7 +54,7 @@ if (!$logs) return;
                 <tbody id="">
                 <tr>
                     <td>
-                        <input class="synch_log_filter" type="text" name="log_filter_daterange"
+                        <input class="" type="text" name="log_filter_daterange"
                                <?php if ($daterange) { ?>value="<?php echo htmlspecialchars($daterange) ?>"<?php } ?>/>
                     </td>
                     <td><input class="synch_log_filter" id="issue_id_filter" type="search" placeholder="Id"
@@ -66,7 +66,7 @@ if (!$logs) return;
                                 data-data="{filter:'off'}">
                             <option value="">All</option>
                             <option value="error">Error</option>
-                            <option value="info">Info</option>
+                            <option value="success">Success</option>
                         </select>
                     </td>
                     <td>
