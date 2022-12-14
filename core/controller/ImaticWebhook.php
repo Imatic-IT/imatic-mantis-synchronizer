@@ -18,6 +18,10 @@ class ImaticWebhook
      * @var string
      */
     private $file;
+    /**
+     * @var string
+     */
+    private $dir;
 
     private $webhooks_decoded;
 
@@ -27,6 +31,7 @@ class ImaticWebhook
     public function __construct()
     {
         $this->file = dirname(__DIR__, 1) . '/webhooks/webhooks.json';
+        $this->dir = dirname(__DIR__, 1) . '/webhooks';
     }
 
     /**
@@ -36,6 +41,10 @@ class ImaticWebhook
     public function createWebhook($sended_data)
     {
         $this->data = $sended_data;
+
+        if (!is_dir($this->dir)){
+            mkdir($this->dir, 0777, true);
+        }
 
         if (!file_exists($this->file)) {
             fopen($this->file, "w");
