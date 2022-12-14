@@ -116,14 +116,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     function core_ready_hook()
     {
-
-        if (isset($_POST) && !empty($_POST)) {
-            $webhook = new \Imatic\Mantis\Synchronizer\ImaticWebhook();
-
-//            $webhook->sendWebhook();
-//            pre_r($_POST);
-        }
-
         $custom_field = plugin_config_get('custom_field');
         if (!$custom_field['id'] && $custom_field['create'] != false) {
             require 'core/create_custom_field.php';
