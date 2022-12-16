@@ -43,11 +43,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function config(): array
     {
         return [
-            'write_log_to_db' => true,
-            'project_for_synchronize' =>
-                [
-                    3
-                ],
             'custom_field' => [
                 'create' => true,
                 'name' => 'Jira issue link',
@@ -127,9 +122,13 @@ class ImaticSynchronizerPlugin extends MantisPlugin
      */
     public function bugnote_add_hook($p_event)
     {
-
         $issue_id = $_POST['bug_id'];
         $p_bug = bug_get($issue_id);
+
+        // If issue is private do not synchronize issue
+        if ($p_bug->view_state ==  50){
+            return $p_bug;
+        }
 
         $this->event_bug_hooks($p_event, $p_bug, $issue_id);
 
@@ -142,6 +141,11 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
 
         $issue_model = new ImaticMantisIssueModel();
+
+        // If issue is private do not synchronize issue
+        if ($_POST['view_state'] == 50){
+            return $p_bug;
+        }
 
         // Check if project is in config
         if (!$this->ImaticCheckProjectForSyhnchronize()) {
@@ -187,6 +191,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             return;
         }
 
+        // For Prevent catching event from API (API POST request does not have this $_POST field and method event_bug_hooks will not send this issue from API like self created issue )
         require __DIR__ . '/inc/synchronize_issue_checkbox.php';
     }
 
@@ -214,7 +219,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         return true;
 
     }
-
 
     public function layout_body_end_hook($p_event)
     {

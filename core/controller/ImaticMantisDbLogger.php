@@ -6,7 +6,6 @@ namespace Imatic\Mantis\Synchronizer;
 
 class ImaticMantisDbLogger
 {
-    public $write_log_to_db = false;
     public $issue_id;
     public $log_level;
     public $bugnote_id = null;
@@ -22,17 +21,7 @@ class ImaticMantisDbLogger
 
     public function __construct()
     {
-        $this->write_log_to_db = plugin_config_get('write_log_to_db');
         $this->db_log_moddel = new ImaticMantisDbloggerModel();
-    }
-
-    /**
-     * @param bool|string $write_log_to_db
-     */
-    public function setWriteLogToDb($write_log_to_db): void
-    {
-
-        $this->write_log_to_db = $write_log_to_db;
     }
 
     /**
