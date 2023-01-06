@@ -29,6 +29,7 @@ class ImaticMantisIssueModel
         $this->p_lang = lang_get_current();
 
         $p->webhookEvent = $this->issue_data->webhookEvent;
+        $p->url = $_SERVER['HTTP_HOST'];
         $p->issue_event_type_name = substr($this->issue_data->webhookEvent, strpos($this->issue_data->webhookEvent, ":") + 1);
 
         $p->issue->issue_id = $this->issue_data->id;
