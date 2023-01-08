@@ -100,12 +100,15 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function hooks(): array
     {
         return [
-            'EVENT_REPORT_BUG_FORM' => 'report_bug_form_hook',
+            'EVENT_REPORT_BUG_FORM' => 'prevention_catch_event_from_api',
             'EVENT_REPORT_BUG' => 'event_bug_hooks',
             'EVENT_UPDATE_BUG_DATA' => 'event_bug_hooks',
             'EVENT_BUGNOTE_ADD' => 'bugnote_add_hook',
             'EVENT_LAYOUT_BODY_END' => 'layout_body_end_hook',
             'EVENT_CORE_READY' => 'core_ready_hook',
+            'EVENT_UPDATE_BUG_FORM' => 'prevention_catch_event_from_api',
+            'EVENT_UPDATE_BUG_STATUS_FORM' => 'prevention_catch_event_from_api',
+            'EVENT_BUGNOTE_ADD_FORM' => 'prevention_catch_event_from_api'
         ];
     }
 
@@ -126,7 +129,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         $p_bug = bug_get($issue_id);
 
         // If issue is private do not synchronize issue
-        if ($p_bug->view_state ==  50){
+        if ($p_bug->view_state == 50) {
             return $p_bug;
         }
 
@@ -139,11 +142,16 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function event_bug_hooks($p_event, BugData $p_bug, $issue_id)
     {
 
+        // Prevention before creating an issue from the API
+        if (!$_POST['synchronize_issue']) {
+            return $p_bug;
+        }
+
 
         $issue_model = new ImaticMantisIssueModel();
 
         // If issue is private do not synchronize issue
-        if ($_POST['view_state'] == 50){
+        if ($_POST['view_state'] == 50 || $p_bug->view_state == 50 ) {
             return $p_bug;
         }
 
@@ -153,9 +161,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         }
 
         // Check if issue is intern, if not, than can be synchronized
-        if ($issue_model->imaticCheckIfIssueIsIntern($p_bug->id)) {
-            return $p_bug;
-        }
+//        if ($issue_model->imaticCheckIfIssueIsIntern($p_bug->id)) {
+//            return $p_bug;
+//        }
 
         $eventListener = new ImaticMantisEventListener;
 
@@ -163,12 +171,12 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         $p_bug->webhookEvent = constant($p_event);
 
         //Check if issue is intern and save isssue as intern to DB // case update issue check if issue is intern if is intern synchronize will be stopped
-        if (isset($_POST['synchronize_issue']) && $_POST['synchronize_issue'] == 0) {
-
-            $issue_model->imaticInsertInternIssue($issue_id);
-
-            return $p_bug;
-        }
+//        if (isset($_POST['synchronize_issue']) && $_POST['synchronize_issue'] == 0) {
+//
+//            $issue_model->imaticInsertInternIssue($issue_id);
+//
+//            return $p_bug;
+//        }
 
         switch ($p_event) {
             case 'EVENT_UPDATE_BUG_DATA':
@@ -184,7 +192,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         }
     }
 
-    public function report_bug_form_hook()
+    public function prevention_catch_event_from_api()
     {
         // If not project id in arr, checkbox will not be created
         if (!$this->ImaticCheckProjectForSyhnchronize()) {
