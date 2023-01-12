@@ -85,15 +85,22 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 			"]],
             3 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_queue'), "
 				webhook_id						I,
-				webhook_name					C(32)	         	 DEFAULT \" ' ' \"	
+				webhook_name					C(32)	         	 DEFAULT \" ' ' \"
 			"]],
             4 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
 				webhook_id						I,
-				webhook_name					C(32)	         	 DEFAULT \" ' ' \"	
+				webhook_name					C(32)	         	 DEFAULT \" ' ' \"
 			"]],
             5 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
-                message	        					
+                date_submitted
 			"]],
+            6 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+                date_submitted
+			"]],
+            7 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+                date_submited			      I	        NOTNULL  DEFAULT '" . db_now() . "'
+			"]],
+
         ];
     }
 
@@ -151,7 +158,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         $issue_model = new ImaticMantisIssueModel();
 
         // If issue is private do not synchronize issue
-        if ($_POST['view_state'] == 50 || $p_bug->view_state == 50 ) {
+        if ($_POST['view_state'] == 50 || $p_bug->view_state == 50) {
             return $p_bug;
         }
 
@@ -233,11 +240,17 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
         echo '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/style.css') . '" />';
 
-        echo '<script  src="' . plugin_file('filter_logs.js') . '&v=' . $this->version . '"></script>';
+        echo '<script  src="' . plugin_file('js/datepickerinput.js') . '&v=' . $this->version . '"></script>';
+        echo '<script  src="' . plugin_file('js/app.js') . '&v=' . $this->version . '"></script>';
 
         //SELECT 2
         echo '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/select2.min.css') . '" />';
         echo '<script  src="' . plugin_file('js/select2.full.min.js') . '"></script>';
         echo '<script  src="' . plugin_file('js/webhook.js') . '&v=' . $this->version . '"></script>';
+
+        // Date range picker from https://daterangepicker.com/
+        echo '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/daterangepicker.css') . '" />';
+        echo '<script  src="' . plugin_file('js/daterangepicker.min.js') . '"></script>';
+        echo '<script  src="' . plugin_file('js/moment.min.js') . '"></script>';
     }
 }

@@ -4,3 +4,12 @@
     text-decoration: none;
     color: #ffffff;
 }
+
+.active-log-page{
+    background-color: #2a8bcb ;
+    color: #FFFFFF;
+}
+
+.page-button{
+    margin: 0.1rem;
+}

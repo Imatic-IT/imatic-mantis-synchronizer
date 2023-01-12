@@ -14,16 +14,17 @@ print_manage_menu('manage_plugin_page.php');
 
 include 'links.php';
 
-$daterange = gpc_get_string('daterange', '');
-
+$start_date = date("d.m.Y");
+$end_date = date("d.m.Y", strtotime("+1 day"));
+$daterange = $start_date . " - " . $end_date;
 
 $logger = new ImaticMantisDblogger();
-$logs = $logger->getAllLogs();
+$logs =  $logger->getAllLogs();
 
 if (!$logs) return;
 ?>
-
-    <input id="imaticSynchronizerLogs" <?php  echo 'data-data="'.htmlspecialchars(json_encode($logs)). '"'?> type="hidden">
+    <input id="imaticSynchronizerLogs" <?php echo 'data-data="' . htmlspecialchars(json_encode($logs)) . '"' ?>
+           type="hidden">
 
     <div id="test_pagine"></div>
 
@@ -47,22 +48,25 @@ if (!$logs) return;
                         Webhook event
                     </td>
                     <td>
-                        Clear filter
+
+                    </td>
+                    <td>
+
                     </td>
                 </tr>
                 </thead>
                 <tbody id="">
                 <tr>
                     <td>
-                        <input class="" type="text" name="log_filter_daterange"
+                        <input id="date-range-picker" type="text" name="log_filter_daterange"
                                <?php if ($daterange) { ?>value="<?php echo htmlspecialchars($daterange) ?>"<?php } ?>/>
                     </td>
-                    <td><input class="synch_log_filter" id="issue_id_filter" type="search" placeholder="Id"
+                    <td><input class="log_filter" id="issue_id_filter" type="search" placeholder="Id"
                                data-filter="off">
                     </td>
-                    <td><input class="synch_log_filter" id="bugnote_id_filter" type="search" placeholder="Id"></td>
+                    <td><input class="log_filter" id="bugnote_id_filter" type="search" placeholder="Id"></td>
                     <td>
-                        <select class="synch_log_filter" name="log_filer" id="log_level_filter"
+                        <select class="log_filter" name="log_filer" id="log_level_filter"
                                 data-data="{filter:'off'}">
                             <option value="">All</option>
                             <option value="error">Error</option>
@@ -70,8 +74,11 @@ if (!$logs) return;
                         </select>
                     </td>
                     <td>
-                        <input class="synch_log_filter" id="webhook_event_filter" type="search" placeholder="mantis:"
+                        <input class="log_filter" id="webhook_event_filter" type="search" placeholder="mantis:"
                                value="mantis:">
+                    </td>
+                    <td>
+                        <button id="start_filter" class="btn btn-secondary btn-sm">Filter</button>
                     </td>
                     <td>
                         <button id="clear_log_filter" class="btn btn-secondary btn-sm">Clear filter</button>
@@ -85,18 +92,21 @@ if (!$logs) return;
 
             <div class="widget-main no-padding">
                 <div class="table-responsive checkbox-range-selection">
+                    <div id="logs-pagination"></div>
                     <table id="buglist" class="table table-bordered table-condensed table-hover table-striped">
                         <thead>
                         <tr class="buglist-headers">
                             <td></td>
                             <?php
+                            // Create table fields names from db logs
                             foreach ($logs[0] as $key => $log) {
                                 echo '<td>' . ucfirst(str_replace("_", " ", $key)) . '</td>';
                             }
                             ?>
                         </tr>
                         </thead>
-                        <div id="logs_pagination"></div>
+
+                        <!--                        Logs are appends here-->
                         <tbody id="logs">
 
                         </tbody>
