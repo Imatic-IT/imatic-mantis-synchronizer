@@ -13,7 +13,7 @@ class ImaticMantisDbloggerModel
 
         db_param_push();
         $t_query = 'INSERT INTO ' . $db . '
-                        ( issue_id, bugnote_id, webhook_event, sended, log_level, date_submitted, webhook_id, webhook_name)
+                        ( issue_id, bugnote_id, webhook_event, sended, log_level, date_submited, webhook_id, webhook_name)
                       VALUES
                         ( ' . db_param() . ',' . db_param() . ',' . db_param() . ',' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ')';
 
