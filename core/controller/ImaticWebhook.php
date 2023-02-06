@@ -192,8 +192,12 @@ class ImaticWebhook
     {
 
         $this->webhooks_decoded = $this->getWebhooks();
-
         $projects = [];
+
+        if (!$this->webhooks_decoded){
+            return $projects;
+        };
+
         foreach ($this->webhooks_decoded as $webhook) {
             $projects = array_unique(array_merge($webhook['projects'], $projects));
         }

@@ -71,7 +71,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
                 method_type	        		  C(32)             DEFAULT \" ' ' \",
 				resended					  L                 DEFAULT \" '0' \" ,
 				issue						  JSON,
-                date_submitted			      I        NOTNULL  DEFAULT '" . db_now() . "',
                 last_updated			      I		   NOTNULL  DEFAULT '" . db_now() . "'
 			"]],
             2 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
@@ -80,8 +79,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
                 log_level   	        	  C(32)	         	 DEFAULT \" ' ' \",
                 webhook_event	        	  C(32)	         	 DEFAULT \" ' ' \",
                 message	        			  C(200)		     DEFAULT \" ' ' \",
-				sended						  L                  DEFAULT \" '0' \" ,
-                date_submitted			      I	        NOTNULL  DEFAULT '" . db_now() . "'
+				sended						  L                  DEFAULT \" '0' \" ,               
 			"]],
             3 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_queue'), "
 				webhook_id						I,
@@ -91,16 +89,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 				webhook_id						I,
 				webhook_name					C(32)	         	 DEFAULT \" ' ' \"
 			"]],
-            5 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
-                date_submitted
-			"]],
-            6 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
-                date_submitted
-			"]],
-            7 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
-                date_submited			      I	        NOTNULL  DEFAULT '" . db_now() . "'
-			"]],
-
+            5 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+                 date_submitted			      I	        NOTNULL  DEFAULT '" . db_now() . "'
+			"]]
         ];
     }
 
@@ -213,6 +204,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     private function ImaticCheckProjectForSyhnchronize()
     {
+
 
         $wh = new ImaticWebhook();
 
