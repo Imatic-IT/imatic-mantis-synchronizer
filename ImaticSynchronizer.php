@@ -91,7 +91,15 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 			"]],
             5 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
                  date_submitted			      I	        NOTNULL  DEFAULT '" . db_now() . "'
-			"]]
+			"]],
+            6 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_webhooks'), "
+				id							I		       PRIMARY NOTNULL AUTOINCREMENT,
+                name	        		  C(120)           NOTNULL  ,
+                url	        		      C(200)           NOTNULL  DEFAULT \" ' ' \",
+				status					   L                 DEFAULT \" '0' \" ,
+				projects				   JSON,           
+                date_submitted			    I	           NOTNULL  DEFAULT '" . db_now() . "'
+			"]],
         ];
     }
 

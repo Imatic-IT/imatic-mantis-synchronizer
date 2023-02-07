@@ -16,10 +16,9 @@ $projects = project_get_all_rows();
 $imatic_webhook = new ImaticWebhook();
 $webhooks = $imatic_webhook->getWebhooks();
 
-//$imatic_webhook->updateWebhook();
+//$webhook = $imatic_webhook->getWebhook(2);
+//pre_r($webhook);
 
-
-// pre_r($webhooks);
 
 include 'links.php';
 ?>
@@ -35,7 +34,7 @@ include 'links.php';
             if ($webhooks) {
 
                 foreach ($webhooks as $key => $webhook) {
-                    echo '<p class="webhooks"><a data-webhook_id="' . $key . '" href="' . plugin_page('webhook_get') . '">' . $webhook['name'] . '</a></p>';
+                    echo '<p class="webhooks"><a data-webhook_id="' . $webhook['id'] . '" href="' . plugin_page('webhook_get') . '">' . $webhook['name'] . '</a></p>';
                 }
             } else {
                 echo '<p>No webhooks</p>';
