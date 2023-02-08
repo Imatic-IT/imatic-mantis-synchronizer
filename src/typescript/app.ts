@@ -1,4 +1,5 @@
 interface Log {
+    date_submitted: Date;
     webhook_name: string;
     webhook_id: string;
     sended: string;
@@ -111,7 +112,7 @@ function displayLogs(logsData: Log[], clearFilter: boolean = false) {
             <td>${log.sended}</td>
             <td>${log.webhook_id}</td>
             <td>${log.webhook_name}</td>
-            <td>${parseTimestamp(log.date_submited)}</td>
+            <td>${parseTimestamp(log.date_submitted)}</td>
             </tr>
         `;
         logsContainer.appendChild(logsTd);
