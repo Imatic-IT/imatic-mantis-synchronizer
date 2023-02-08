@@ -115,6 +115,7 @@ function displayLogs(logsData: Log[], clearFilter: boolean = false) {
             <td>${log.webhook_id}</td>
             <td>${log.webhook_name}</td>
             <td>${parseTimestamp(log.date_submitted)}</td>
+            <td>${log.status_code?? ''}</td>
             </tr>
         `;
         logsContainer.appendChild(logsTd);

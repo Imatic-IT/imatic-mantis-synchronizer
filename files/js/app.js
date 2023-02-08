@@ -71,6 +71,7 @@ function displayLogs(logsData, clearFilter = false) {
     const endIndex = startIndex + logsDataPerPage;
     const currentLogs = logsData.slice(startIndex, endIndex);
     currentLogs.forEach((log) => {
+        var _a;
         const logsTd = document.createElement("tr");
         logsTd.innerHTML = `<tr>
             <td></td>
@@ -82,6 +83,7 @@ function displayLogs(logsData, clearFilter = false) {
             <td>${log.webhook_id}</td>
             <td>${log.webhook_name}</td>
             <td>${parseTimestamp(log.date_submitted)}</td>
+            <td>${(_a = log.status_code) !== null && _a !== void 0 ? _a : ''}</td>
             </tr>
         `;
         logsContainer.appendChild(logsTd);

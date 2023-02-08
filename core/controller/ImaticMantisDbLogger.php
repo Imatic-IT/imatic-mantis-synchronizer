@@ -17,6 +17,7 @@ class ImaticMantisDbLogger
     public $all_logs;
     public $webhook_id;
     public $webhook_name;
+    public $status_code;
 
 
     public function __construct()
@@ -123,6 +124,22 @@ class ImaticMantisDbLogger
     public function setWebhookName($webhook_name)
     {
         $this->webhook_name = $webhook_name;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getStatusCode()
+    {
+        return $this->status_code;
+    }
+
+    /**
+     * @param mixed $status_code
+     */
+    public function setStatusCode($status_code)
+    {
+        $this->status_code = $status_code;
     }
 
 

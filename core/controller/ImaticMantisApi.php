@@ -85,6 +85,7 @@ class ImaticMantisApi
         $logger->setProjectId(bug_get_row($this->issue_data->issue->issue_id)['project_id']); //Optimize  ?
         $logger->setWebhookId($webhook_id);
         $logger->setWebhookName($webhook_name);
+        $logger->setStatusCode($this->webhook_result['status'] );
         $logger->log();
     }
 }

@@ -106,6 +106,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             8 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_webhooks'), "
                  status					   C(10)
 			"]],
+            9 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+                 status_code			      c(32)	        
+			"]],
         ];
     }
 
