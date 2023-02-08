@@ -60,7 +60,9 @@ function parseTimestamp(timestamp) {
     let day = date.getDate();
     let month = date.getMonth() + 1;
     let year = date.getFullYear();
-    let formattedDate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    let formattedDate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year} ${hours}:${minutes}`;
     return formattedDate;
 }
 function displayLogs(logsData, clearFilter = false) {
