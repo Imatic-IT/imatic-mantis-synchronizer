@@ -57,6 +57,7 @@ class ImaticMantisWebhookModel
 
     public function imaticUpdateWebhook($webhook)
     {
+
         $webhook['projects'] = json_encode($webhook['projects']);
         $id = $webhook['webhook_id'];
         $name = $webhook['name'];
@@ -64,7 +65,7 @@ class ImaticMantisWebhookModel
         $status = $webhook['status'];
         $projects = $webhook['projects'];
         $db = db_get_table('imatic_synchronizer_webhooks');
-        $sql = "UPDATE " . $db . " SET name='" . $name . "', url='" . $url . "', status='" . $status . "$', projects='" . $projects . "' WHERE id=" . $id;
+        $sql = "UPDATE " . $db . " SET name='" . $name . "', url='" . $url . "', status='" . $status . "', projects='" . $projects . "' WHERE id=" . $id;
         db_query($sql);
         return db_affected_rows();
 

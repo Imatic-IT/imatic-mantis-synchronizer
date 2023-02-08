@@ -100,6 +100,12 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 				projects				   JSON,           
                 date_submitted			    I	           NOTNULL  DEFAULT '" . db_now() . "'
 			"]],
+            7 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_webhooks'), "
+                 status
+			"]],
+            8 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_webhooks'), "
+                 status					   C(10)
+			"]],
         ];
     }
 
