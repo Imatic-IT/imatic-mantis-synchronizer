@@ -16,10 +16,6 @@ $projects = project_get_all_rows();
 $imatic_webhook = new ImaticWebhook();
 $webhooks = $imatic_webhook->getWebhooks();
 
-//$webhook = $imatic_webhook->getWebhook(2);
-//pre_r($webhook);
-
-
 include 'links.php';
 ?>
 
