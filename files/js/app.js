@@ -1,4 +1,6 @@
 "use strict";
+let currentPage = 1;
+const logsDataPerPage = 50;
 const logsData = getLogsData();
 const logsContainer = document.querySelector("#logs");
 const clearFilter = document.querySelector("#clear_log_filter");
@@ -9,11 +11,9 @@ const bugnoteIdInput = document.querySelector("#bugnote_id_filter");
 const logLevelInput = document.querySelector("#log_level_filter");
 const webhookEventInput = document.querySelector("#webhook_event_filter");
 const dateRangePicker = document.querySelector("#date-range-picker");
-let currentPage = 1;
-const logsDataPerPage = 15;
-displayLogs(logsData);
+displayLogs(logsData, logsDataPerPage);
 clearFilter.addEventListener("click", () => {
-    displayLogs(logsData);
+    displayLogs(logsData, logsDataPerPage);
 });
 filterButton.addEventListener("click", () => {
     const issueId = issueIdInput.value;
@@ -24,10 +24,11 @@ filterButton.addEventListener("click", () => {
     const [startDate, endDate] = getDateRange(dateRange);
     const filteredLogs = logsData.filter((log) => {
         // @ts-ignore
-        let date = new Date(log.date_submited * 1000);
+        let date = new Date(log.date_submitted * 1000);
         let options = { year: 'numeric', month: '2-digit', day: '2-digit' };
         // @ts-ignore
         let formattedDate = date.toLocaleDateString('en-US', options).trim();
+        console.log(date);
         return ((issueId === "" || parseInt(String(log.issue_id)) === parseInt(issueId)) &&
             (bugnoteId === "" || parseInt(String(log.bugnote_id)) === parseInt(bugnoteId)) &&
             log.log_level.toLowerCase().includes(logLevel.toLowerCase()) &&
@@ -35,7 +36,7 @@ filterButton.addEventListener("click", () => {
             new Date(formattedDate) >= startDate &&
             new Date(formattedDate) <= endDate);
     });
-    displayLogs(filteredLogs);
+    displayLogs(filteredLogs, logsDataPerPage);
 });
 function getLogsData() {
     const el = document.querySelector('#imaticSynchronizerLogs');
@@ -62,10 +63,11 @@ function parseTimestamp(timestamp) {
     let year = date.getFullYear();
     let hours = date.getHours();
     let minutes = date.getMinutes();
-    let formattedDate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year} ${hours}:${minutes}`;
-    return formattedDate;
+    let formattedDate = `${day < 10 ? "0" + day : day}.${month < 10 ? "0" + month : month}.${year}`;
+    let formatTime = `${hours}:${minutes}`;
+    return [formattedDate, formatTime];
 }
-function displayLogs(logsData, clearFilter = false) {
+function displayLogs(logsData, logsDataPerPage) {
     logsContainer.innerHTML = "";
     const startIndex = (currentPage - 1) * logsDataPerPage;
     const endIndex = startIndex + logsDataPerPage;
@@ -73,6 +75,9 @@ function displayLogs(logsData, clearFilter = false) {
     currentLogs.forEach((log) => {
         var _a;
         const logsTd = document.createElement("tr");
+        const [parsedDate, parsedTime] = parseTimestamp(log.date_submitted);
+        // console.log(parsedTime)
+        // console.log(parsedDate)
         logsTd.innerHTML = `<tr>
             <td></td>
             <td>${log.issue_id}</td>
@@ -82,15 +87,15 @@ function displayLogs(logsData, clearFilter = false) {
             <td>${log.sended}</td>
             <td>${log.webhook_id}</td>
             <td>${log.webhook_name}</td>
-            <td>${parseTimestamp(log.date_submitted)}</td>
+            <td>${parsedDate} ${parsedTime}</td>
             <td>${(_a = log.status_code) !== null && _a !== void 0 ? _a : ''}</td>
             </tr>
         `;
         logsContainer.appendChild(logsTd);
     });
-    createPagination(logsData);
+    createPagination(logsData, logsDataPerPage);
 }
-function createPagination(logsData) {
+function createPagination(logsData, logsDataPerPage) {
     const totalPages = Math.ceil(logsData.length / logsDataPerPage);
     const paginationContainer = document.querySelector("#logs-pagination");
     paginationContainer.innerHTML = "";
@@ -100,9 +105,27 @@ function createPagination(logsData) {
     prevButton.addEventListener("click", () => {
         if (currentPage > 1) {
             currentPage -= 1;
-            displayLogs(logsData);
+            displayLogs(logsData, logsDataPerPage);
             updatePaginationButtons();
         }
+    });
+    // Create logs per page select
+    const logsPerPage = document.createElement('select');
+    logsPerPage.classList.add("logs_per_page");
+    for (let i = 10; i <= 100; i = i + 10) {
+        const option = document.createElement('option');
+        let selected;
+        if (selected = i == logsDataPerPage ? true : false)
+            option.value = i.toString();
+        option.selected = selected;
+        option.text = i.toString();
+        logsPerPage.appendChild(option);
+    }
+    paginationContainer.prepend(logsPerPage);
+    logsPerPage.addEventListener("change", (e) => {
+        const selectedOption = e.target;
+        const selectedValue = parseInt(selectedOption.value);
+        displayLogs(logsData, selectedValue);
     });
     paginationContainer.appendChild(prevButton);
     // Create page buttons
@@ -112,7 +135,7 @@ function createPagination(logsData) {
         pageButton.classList.add("page-button");
         pageButton.addEventListener("click", () => {
             currentPage = i;
-            displayLogs(logsData);
+            displayLogs(logsData, logsDataPerPage);
             updatePaginationButtons();
         });
         paginationContainer.appendChild(pageButton);
@@ -123,7 +146,7 @@ function createPagination(logsData) {
     nextButton.addEventListener("click", () => {
         if (currentPage < totalPages) {
             currentPage += 1;
-            displayLogs(logsData);
+            displayLogs(logsData, logsDataPerPage);
             updatePaginationButtons();
         }
     });
