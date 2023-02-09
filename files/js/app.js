@@ -76,10 +76,8 @@ function displayLogs(logsData, logsDataPerPage) {
         var _a;
         const logsTd = document.createElement("tr");
         const [parsedDate, parsedTime] = parseTimestamp(log.date_submitted);
-        // console.log(parsedTime)
-        // console.log(parsedDate)
         logsTd.innerHTML = `<tr>
-            <td></td>
+            <td><input type="checkbox" name="logs_id" value="${log.id}"></td>
             <td>${log.issue_id}</td>
             <td>${log.bugnote_id}</td>
             <td>${log.log_level}</td>
@@ -164,4 +162,36 @@ function updatePaginationButtons() {
             button.classList.remove("active-log-page");
         }
     });
+    selectMultipleCheckboxex();
+    function selectMultipleCheckboxex() {
+        // let startCheckbox: HTMLInputElement;
+        let endCheckbox;
+        let checkboxes;
+        // Načítanie checkboxov do NodeList
+        checkboxes = document.querySelectorAll("td input[type='checkbox']");
+        let startCheckbox = null;
+        let lastChecked = null;
+        // Priradenie udalosti click na všetky checkboxy
+        for (let i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].addEventListener("click", function (event) {
+                if (event.shiftKey) {
+                    // Ak je stlačený Shift tak označiť/odobrať označenie všetkých checkboxov medzi aktuálne kliknutým checkboxom a startCheckbox
+                    let start = Array.from(checkboxes).indexOf(this);
+                    let end = Array.from(checkboxes).indexOf(startCheckbox);
+                    // Ak start > end, tak výmena hodnôt
+                    if (start > end) {
+                        [start, end] = [end, start];
+                    }
+                    for (let j = start; j <= end; j++) {
+                        checkboxes[j].checked = lastChecked.checked;
+                    }
+                }
+                else {
+                    // Inak nastaviť aktuálny checkbox ako startCheckbox
+                    startCheckbox = this;
+                }
+                lastChecked = this;
+            });
+        }
+    }
 }
