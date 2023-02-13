@@ -117,11 +117,12 @@ function displayLogs(logsData: Log[], logsDataPerPage: number) {
             <td>${log.bugnote_id}</td>
             <td>${log.log_level}</td>
             <td>${log.webhook_event}</td>
-            <td>${log.sended}</td>
             <td>${log.webhook_id}</td>
             <td>${log.webhook_name}</td>
             <td>${parsedDate} ${parsedTime}</td>
             <td>${log.status_code ?? ''}</td>
+            <td>${log.resended}</td>            
+            <td><a class="btn btn-primary btn-xs" href=""><i class="fa fa-eye"></i></a></td>            
             </tr>
         `;
         logsContainer.appendChild(logsTd);

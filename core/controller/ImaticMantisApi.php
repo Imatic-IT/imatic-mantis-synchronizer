@@ -23,20 +23,12 @@ class ImaticMantisApi
         $webhooks = $wh->getWebhooks();
         foreach ($webhooks as $key => $webhook) {
 
-
             if ($webhook['status'] == 'on') {
 
                 if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
                     $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
 
-                    if (isset($this->webhook_result['error']) && !empty($this->webhook_result['error']) || $this->webhook_result['status'] >= 400) {
-
-                        $queue_issue_data = $this->issue_model->imaticQueueIdAndMethodExists($this->issue_data->issue->issue_id, $this->event_issue_type);
-                        if (!$queue_issue_data && empty($queue_issue_data)) {
-                            $this->issue_model->imaticInsertNotSuccessIssueData($this->issue_data, $this->issue_data->issue->issue_id, $this->event_issue_type, $key, $webhook['name']);
-                        }
-                    }
                     $this->imaticCallDbLog($key, $webhook['name']);
                 }
             }
@@ -56,10 +48,7 @@ class ImaticMantisApi
             if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
                 $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
-                if ($this->webhook_result['status'] >= 400) {
 
-                    $this->issue_model->imaticInsertNotSuccessIssueData($this->issue_data, $this->issue_data->issue->issue_id, $this->event_issue_type, $key, $webhook['name']);
-                }
                 $this->imaticCallDbLog($key, $webhook['name']);
             }
         }
@@ -68,11 +57,13 @@ class ImaticMantisApi
 
     private function imaticCallDbLog($webhook_id, $webhook_name)
     {
+
+        $issue_json = json_encode($this->issue_data);
+
         $logger = new ImaticMantisDbLogger();
         if ($this->webhook_result['status'] >= 400 || $this->webhook_result['status'] == 0) {
             $this->type_results = 'error';
-            $logger->setSended(false);
-
+            $logger->setResended('false');
         } else {
             $this->type_results = 'success';
         }
@@ -86,6 +77,7 @@ class ImaticMantisApi
         $logger->setWebhookId($webhook_id);
         $logger->setWebhookName($webhook_name);
         $logger->setStatusCode($this->webhook_result['status'] );
+        $logger->setIssueJson($issue_json);
         $logger->log();
     }
 }

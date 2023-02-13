@@ -12,12 +12,13 @@ class ImaticMantisDbLogger
     public $webhook_event;
     public $message;
     public $project_id;
-    public $sended = true;
     public $db_log_moddel;
     public $all_logs;
     public $webhook_id;
     public $webhook_name;
     public $status_code;
+    public $resended;
+    public $issue_json;
 
 
     public function __construct()
@@ -71,14 +72,6 @@ class ImaticMantisDbLogger
     public function setProjectId($project_id): void
     {
         $this->project_id = $project_id;
-    }
-
-    /**
-     * @param bool $sended
-     */
-    public function setSended(bool $sended): void
-    {
-        $this->sended = $sended;
     }
 
     public function log()
@@ -142,5 +135,20 @@ class ImaticMantisDbLogger
         $this->status_code = $status_code;
     }
 
+    /**
+     * @param mixed $resended
+     */
+    public function setResended($resended)
+    {
+        $this->resended = $resended;
+    }
+
+    /**
+     * @param mixed $issue_json
+     */
+    public function setIssueJson($issue_json)
+    {
+        $this->issue_json = $issue_json;
+    }
 
 }

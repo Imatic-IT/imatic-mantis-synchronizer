@@ -112,6 +112,13 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             10 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
 				id							I		       PRIMARY NOTNULL AUTOINCREMENT
 			"]],
+            11 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+				resended					  c(32),                 
+				issue						  JSON
+			"]],
+            12 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+                 sended
+			"]],
         ];
     }
 
