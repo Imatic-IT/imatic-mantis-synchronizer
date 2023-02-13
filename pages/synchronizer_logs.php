@@ -1,32 +1,22 @@
 <?php
-
 // Show logs
-
 use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
 
 auth_reauthenticate();
 access_ensure_global_level(config_get('manage_plugin_threshold'));
-
-
 layout_page_header();
 layout_page_begin('manage_overview_page.php');
 print_manage_menu('manage_plugin_page.php');
-
 include 'links.php';
-
 $start_date = date("d.m.Y");
 $end_date = date("d.m.Y", strtotime("+1 day"));
 $daterange = $start_date . " - " . $end_date;
-
 $logger = new ImaticMantisDblogger();
-$logs =  $logger->getAllLogs();
-
+$logs = $logger->getAllLogs();
 if (!$logs) return;
 ?>
     <input id="imaticSynchronizerLogs" <?php echo 'data-data="' . htmlspecialchars(json_encode($logs)) . '"' ?>
            type="hidden">
-
-    <div id="test_pagine"></div>
 
     <div class="col-md-12 col-xs-12">
         <div class="space-10"></div>
@@ -55,7 +45,7 @@ if (!$logs) return;
                     </td>
                 </tr>
                 </thead>
-                <tbody id="">
+                <tbody>
                 <tr>
                     <td>
                         <input id="date-range-picker" type="text" name="log_filter_daterange"
@@ -88,35 +78,50 @@ if (!$logs) return;
             </table>
 
         </div>
-        <div id="synchronizer_logs" class="">
+        <div id="logs-pagination"></div>
+        <form id="logs_actions_form" method="post" action="<?php echo plugin_page('log_actions') ?>">
+            <div id="synchronizer_logs" class="">
 
-            <div class="widget-main no-padding">
-                <div class="table-responsive checkbox-range-selection">
-                    <div id="logs-pagination"></div>
-                    <table id="buglist" class="table table-bordered table-condensed table-hover table-striped">
-                        <thead>
-                        <tr class="buglist-headers">
-                            <td></td>
-                            <?php
-                            // Create table fields names from db logs
-                            foreach ($logs[0] as $key => $log) {
-                                echo '<td>' . ucfirst(str_replace("_", " ", $key)) . '</td>';
-                            }
-                            ?>
-                        </tr>
-                        </thead>
+                <div class="widget-main no-padding">
+                    <div class="table-responsive checkbox-range-selection">
+                        <table id="buglist" class="table table-bordered table-condensed table-hover table-striped">
+                            <thead>
+                            <tr class="buglist-headers">
+                                <td></td>
+                                <?php
+                                // Create table fields names from db logs
+                                unset($logs[0]['id']);
+                                foreach ($logs[0] as $key => $log) {
 
-                        <!--                        Logs are appends here-->
-                        <tbody id="logs">
+                                    echo '<td>' . ucfirst(str_replace("_", " ", $key)) . '</td>';
+                                }
+                                ?>
+                            </tr>
+                            </thead>
 
-                        </tbody>
-                    </table>
+                            <!--                        Logs are appends here-->
+                            <tbody id="logs">
+
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+            <div class="container-fluid badge-grey padding-2">
+                <select class="" name="logs_actions" id="log_actions_selectbox">
+                    <option value="delete_all_logs">Delete all logs</option>
+                    <option value="delete_success_logs">Delete success logs</option>
+                    <option value="delete_error_logs">Delete error logs</option>
+                    <option value="delete_selected_logs">Delete selected logs</option>
+                </select>
+                <button style="position: relative; top: -1px"  type="submit" class="btn btn-default btn-xs glyphicon glyphicon-ok"></button>
+
+            </div>
+
+
+        </form>
     </div>
 
 
 <?php
-
 layout_page_end();

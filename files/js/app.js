@@ -77,7 +77,7 @@ function displayLogs(logsData, logsDataPerPage) {
         const logsTd = document.createElement("tr");
         const [parsedDate, parsedTime] = parseTimestamp(log.date_submitted);
         logsTd.innerHTML = `<tr>
-            <td><input type="checkbox" name="logs_id" value="${log.id}"></td>
+            <td><input type="checkbox" name="logs_id_arr[]" value="${log.id}"></td>
             <td>${log.issue_id}</td>
             <td>${log.bugnote_id}</td>
             <td>${log.log_level}</td>
@@ -107,7 +107,7 @@ function createPagination(logsData, logsDataPerPage) {
             updatePaginationButtons();
         }
     });
-    // Create logs per page select
+    // Create logs per page selectbox
     const logsPerPage = document.createElement('select');
     logsPerPage.classList.add("logs_per_page");
     for (let i = 10; i <= 100; i = i + 10) {
@@ -167,15 +167,12 @@ function updatePaginationButtons() {
         // let startCheckbox: HTMLInputElement;
         let endCheckbox;
         let checkboxes;
-        // Načítanie checkboxov do NodeList
         checkboxes = document.querySelectorAll("td input[type='checkbox']");
         let startCheckbox = null;
         let lastChecked = null;
-        // Priradenie udalosti click na všetky checkboxy
         for (let i = 0; i < checkboxes.length; i++) {
             checkboxes[i].addEventListener("click", function (event) {
                 if (event.shiftKey) {
-                    // Ak je stlačený Shift tak označiť/odobrať označenie všetkých checkboxov medzi aktuálne kliknutým checkboxom a startCheckbox
                     let start = Array.from(checkboxes).indexOf(this);
                     let end = Array.from(checkboxes).indexOf(startCheckbox);
                     // Ak start > end, tak výmena hodnôt

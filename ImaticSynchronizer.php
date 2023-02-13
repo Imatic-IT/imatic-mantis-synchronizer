@@ -109,6 +109,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             9 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
                  status_code			      c(32)	        
 			"]],
+            10 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+				id							I		       PRIMARY NOTNULL AUTOINCREMENT
+			"]],
         ];
     }
 
@@ -236,9 +239,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         }
 
         if (!in_array($project_id, $webhooks_projects)) {
-
             return;
-
         }
         return true;
 
