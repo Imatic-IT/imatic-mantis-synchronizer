@@ -12,11 +12,46 @@ $start_date = date("d.m.Y");
 $end_date = date("d.m.Y", strtotime("+1 day"));
 $daterange = $start_date . " - " . $end_date;
 $logger = new ImaticMantisDblogger();
+$per_page = 10;
+$log_page = 2;
+
+//$filter = 'error';
+
+
+// Get log page & result per page
+if (isset($_GET['log_page']) && is_numeric($_GET['log_page'])) {
+    $log_page = (int)$_GET['log_page'];
+}
+if (isset($_GET['result_per_page']) && is_numeric($_GET['result_per_page'])) {
+    $result_per_page = (int)$_GET['result_per_page'];
+}
+$offset = ($log_page - 1) * $result_per_page;
 $logs = $logger->getAllLogs();
+// Filtrovanie logs
+$filtered_logs = array();
+foreach ($logs as $log) {
+    if ($log['log_level'] === 'error') {
+
+    }
+    if (empty($filter) || strpos($log['log_level'], $filter) !== false) {
+        $filtered_logs[] = $log;
+    }
+}
+$total_logs = count($filtered_logs);
+$total_pages = ceil($total_logs / $result_per_page);
+$paginated_logs = array_slice($filtered_logs, $offset, $result_per_page);
+
+// Generate previous & next page url
+if ($previous_page_number = $log_page == 1 ? $log_page : $log_page - 1) ;
+if ($next_page_number = $log_page == $total_pages ? $total_pages : $log_page + 1) ;
+$previous_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $result_per_page . '&log_page=' . $previous_page_number;
+$next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $result_per_page . '&log_page=' . $next_page_number;
+// End Generate previous & next page url
+
 if (!$logs) return;
 ?>
-    <input id="imaticSynchronizerLogs" <?php echo 'data-data="' . htmlspecialchars(json_encode($logs)) . '"' ?>
-           type="hidden">
+    <!--    <input id="imaticSynchronizerLogs" --><?php //echo 'data-data="' . htmlspecialchars(json_encode($logs)) . '"' ?>
+    <!--           type="hidden">-->
 
     <div class="col-md-12 col-xs-12">
         <div class="space-10"></div>
@@ -76,9 +111,37 @@ if (!$logs) return;
                 </tr>
                 </tbody>
             </table>
-
         </div>
-        <div id="logs-pagination"></div>
+
+        <!--  Pagination-->
+        <nav aria-label="Page navigation example">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a class="page-link" href="<?php echo $previous_page_url ?>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+                <?php
+                for ($i = 1; $i <= $total_pages; $i++) {
+                    if ($i === $log_page) {
+                        echo '<li class="page-item active disabled"><a class="page-link" href="' . plugin_page("synchronizer_logs") . '&result_per_page=' . $result_per_page . '&log_page=' . $i . '" > ' . $i . ' </a></li>';
+
+                    } else {
+
+                        echo '<li class="page-item"><a class="page-link" href="' . plugin_page("synchronizer_logs") . '&result_per_page=' . $result_per_page . '&log_page=' . $i . '" > ' . $i . ' </a></li>';
+                    }
+                }
+                ?>
+                <li class="page-item">
+                    <a class="page-link" href="<?php echo $next_page_url ?>" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
         <form id="logs_actions_form" method="post" action="<?php echo plugin_page('log_actions') ?>">
             <div id="synchronizer_logs" class="">
 
@@ -89,7 +152,6 @@ if (!$logs) return;
                             <tr class="buglist-headers">
                                 <td></td>
                                 <?php
-                                // Create table fields names from db logs
                                 unset($logs[0]['id']);
                                 foreach ($logs[0] as $key => $log) {
 
@@ -99,29 +161,80 @@ if (!$logs) return;
                             </tr>
                             </thead>
 
-                            <!--                        Logs are appends here-->
                             <tbody id="logs">
+                            <?php foreach ($paginated_logs as $log): ?>
+                                <?php
+                                $date = date("d.m.Y", $log['date_submitted']);
+                                $time = date("H:i:s", $log['date_submitted']);
+                                ?>
+                                <tr>
+                                    <td><input type="checkbox" name="logs_id_arr[]" value="<?php echo $log['id'] ?>"
+                                    </td>
+                                    <td><?php echo $log['issue_id'] ?></td>
+                                    <td><?php echo $log['bugnote_id'] ?></td>
+                                    <td><?php echo $log['log_level'] ?></td>
+                                    <td><?php echo $log['webhook_event'] ?></td>
+                                    <td><?php echo $log['webhook_id'] ?></td>
+                                    <td><?php echo $log['webhook_name'] ?></td>
+                                    <td><?php echo $date . ' ' . $time ?></td>
+                                    <td><?php echo $log['status_code'] ?></td>
+                                    <td><?php echo $log['resended'] ?></td>
+                                    <td>
+                                        <button type="button" class="btn btn-primary btn-xs" data-toggle="modal"
+                                                data-target="#flipFlop-<?php echo $log['id'] ?>">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
 
+                                <!-- The modal -->
+                                <div class="modal fade" id="flipFlop-<?php echo $log['id'] ?>" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                                <h4 class="modal-title" id="modalLabel">Modal Title</h4>
+                                            </div>
+                                            <div class="modal-body">
+                                                <?php
+                                                echo "<p> ID - ".$log['id']. "</p>";
+                                                echo '<pre>';
+                                                print_r(json_decode($log['issue'], true));
+                                                echo '</pre>';
+                                                ?>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End the modal -->
+
+                                </div>
+
+                            <?php endforeach; ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
+
             <div class="container-fluid badge-grey padding-2">
                 <select class="" name="logs_actions" id="log_actions_selectbox">
                     <option value="delete_all_logs">Delete all logs</option>
                     <option value="delete_success_logs">Delete success logs</option>
                     <option value="delete_error_logs">Delete error logs</option>
                     <option value="delete_selected_logs">Delete selected logs</option>
+                    <option value="resend_selected_logs">Resend selected logs</option>
                 </select>
-                <button style="position: relative; top: -1px"  type="submit" class="btn btn-default btn-xs glyphicon glyphicon-ok"></button>
-
+                <button  type="submit" class="btn btn-default btn-xs glyphicon glyphicon-ok"></button>
             </div>
 
 
         </form>
     </div>
-
+<?php layout_page_end(); ?>
 
 <?php
-layout_page_end();
