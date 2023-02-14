@@ -22,14 +22,13 @@ class ImaticMantisApi
         $wh = new ImaticWebhook();
         $webhooks = $wh->getWebhooks();
         foreach ($webhooks as $key => $webhook) {
-
             if ($webhook['status'] == 'on') {
 
                 if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
                     $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
 
-                    $this->imaticCallDbLog($key, $webhook['name']);
+                    $this->imaticCallDbLog($webhook['id'], $webhook['name']);
                 }
             }
         }
@@ -45,11 +44,12 @@ class ImaticMantisApi
         $wh = new ImaticWebhook();
         $webhooks = $wh->getWebhooks();
         foreach ($webhooks as $key => $webhook) {
+
             if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
                 $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
 
-                $this->imaticCallDbLog($key, $webhook['name']);
+                $this->imaticCallDbLog($webhook['id'], $webhook['name']);
             }
         }
     }
