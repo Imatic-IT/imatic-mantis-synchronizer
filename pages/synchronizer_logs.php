@@ -49,8 +49,6 @@ $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $resul
 
 if (!$logs) return;
 ?>
-    <!--    <input id="imaticSynchronizerLogs" --><?php //echo 'data-data="' . htmlspecialchars(json_encode($logs)) . '"' ?>
-    <!--           type="hidden">-->
 
     <div class="col-md-12 col-xs-12">
         <div class="space-10"></div>
