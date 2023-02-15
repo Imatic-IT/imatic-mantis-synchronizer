@@ -61,9 +61,9 @@ class ImaticMantisApi
         $issue_json = json_encode($this->issue_data);
 
         $logger = new ImaticMantisDbLogger();
-        if ($this->webhook_result['status'] >= 400 || $this->webhook_result['status'] == 0) {
+        if ($this->webhook_result['status'] > 205 || $this->webhook_result['status'] == 0) {
             $this->type_results = 'error';
-            $logger->setResended('false');
+            $logger->setResended('not-tried');
         } else {
             $this->type_results = 'success';
         }

@@ -185,23 +185,11 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             return $p_bug;
         }
 
-        // Check if issue is intern, if not, than can be synchronized
-//        if ($issue_model->imaticCheckIfIssueIsIntern($p_bug->id)) {
-//            return $p_bug;
-//        }
 
         $eventListener = new ImaticMantisEventListener;
 
         // constant name of  webhook like : mantis:issue_created -> defined in core/constant.php // Jira use same
         $p_bug->webhookEvent = constant($p_event);
-
-        //Check if issue is intern and save isssue as intern to DB // case update issue check if issue is intern if is intern synchronize will be stopped
-//        if (isset($_POST['synchronize_issue']) && $_POST['synchronize_issue'] == 0) {
-//
-//            $issue_model->imaticInsertInternIssue($issue_id);
-//
-//            return $p_bug;
-//        }
 
         switch ($p_event) {
             case 'EVENT_UPDATE_BUG_DATA':

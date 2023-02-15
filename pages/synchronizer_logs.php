@@ -17,7 +17,6 @@ $log_page = 2;
 
 //$filter = 'error';
 
-
 // Get log page & result per page
 if (isset($_GET['log_page']) && is_numeric($_GET['log_page'])) {
     $log_page = (int)$_GET['log_page'];
@@ -150,7 +149,7 @@ if (!$logs) return;
                         <table id="buglist" class="table table-bordered table-condensed table-hover table-striped">
                             <thead>
                             <tr class="buglist-headers">
-                                <td></td>
+                                <td>#</td>
                                 <?php
                                 unset($logs[0]['id']);
                                 foreach ($logs[0] as $key => $log) {
@@ -172,13 +171,13 @@ if (!$logs) return;
                                     </td>
                                     <td><?php echo $log['issue_id'] ?></td>
                                     <td><?php echo $log['bugnote_id'] ?></td>
-                                    <td><?php echo $log['log_level'] ?></td>
+                                    <td class="<?php echo $log['log_level'] ?>"><?php echo $log['log_level'] ?></td>
                                     <td><?php echo $log['webhook_event'] ?></td>
                                     <td><?php echo $log['webhook_id'] ?></td>
                                     <td><?php echo $log['webhook_name'] ?></td>
                                     <td><?php echo $date . ' ' . $time ?></td>
                                     <td><?php echo $log['status_code'] ?></td>
-                                    <td><?php echo $log['resended'] ?></td>
+                                    <td class="<?php echo $log['resended'] ?>"><?php echo $log['resended'] ?></td>
                                     <td>
                                         <button type="button" class="btn btn-primary btn-xs" data-toggle="modal"
                                                 data-target="#flipFlop-<?php echo $log['id'] ?>">
@@ -187,7 +186,7 @@ if (!$logs) return;
                                     </td>
                                 </tr>
 
-                                <!-- The modal -->
+                                <!-- The modal with issue details-->
                                 <div class="modal fade" id="flipFlop-<?php echo $log['id'] ?>" tabindex="-1" role="dialog" aria-labelledby="modalLabel" aria-hidden="true">
                                     <div class="modal-dialog" role="document">
                                         <div class="modal-content">
@@ -195,7 +194,7 @@ if (!$logs) return;
                                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                     <span aria-hidden="true">&times;</span>
                                                 </button>
-                                                <h4 class="modal-title" id="modalLabel">Modal Title</h4>
+                                                <h4 class="modal-title" id="modalLabel">Issue details </h4>
                                             </div>
                                             <div class="modal-body">
                                                 <?php
@@ -223,11 +222,11 @@ if (!$logs) return;
 
             <div class="container-fluid badge-grey padding-2">
                 <select class="" name="logs_actions" id="log_actions_selectbox">
+                    <option value="resend_all_logs">Resend all error logs</option>
                     <option value="delete_all_logs">Delete all logs</option>
                     <option value="delete_success_logs">Delete success logs</option>
                     <option value="delete_error_logs">Delete error logs</option>
                     <option value="delete_selected_logs">Delete selected logs</option>
-                    <option value="resend_selected_logs">Resend selected logs</option>
                 </select>
                 <button  type="submit" class="btn btn-default btn-xs glyphicon glyphicon-ok"></button>
             </div>

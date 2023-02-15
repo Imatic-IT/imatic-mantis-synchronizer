@@ -13,3 +13,24 @@
 .page-button{
     margin: 0.1rem;
 }
+
+
+#logs .error{
+    background-color: #DC143C;
+    color: #FFFFFF;
+}
+
+#logs .not-tried{
+    background-color: #DC143C;
+    color: #FFFFFF;
+}
+
+#logs .success{
+    background-color: #90EE90;
+    /*color: #FFFFFF;*/
+}
+
+#logs .tried{
+    background-color: #BA55D3;
+    color: #FFFFFF;
+}
