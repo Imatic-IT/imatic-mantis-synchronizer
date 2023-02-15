@@ -119,6 +119,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             12 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
                  sended
 			"]],
+            13 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+                 date_submited
+			"]],
         ];
     }
 
