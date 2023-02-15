@@ -83,4 +83,19 @@ class ImaticMantisDbloggerModel
              db_query($sql);
         return  db_affected_rows();
     }
+
+    public  function imaticGetLogById($id){
+
+        $db = db_get_table('imatic_synchronizer_bug_logger');
+        $t_query = "SELECT * From $db " . "WHERE issue_id='$id'";
+
+        $t_result = db_query($t_query);
+        $t_res = [];
+        while ($row = db_fetch_array($t_result)) {
+            $t_res[] = $row;
+        }
+
+        return $t_res;
+
+    }
 }

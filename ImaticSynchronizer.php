@@ -8,6 +8,7 @@ use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
 
 
 //MODELS
+use Imatic\Mantis\Synchronizer\ImaticMantisDbloggerModel;
 use Imatic\Mantis\Synchronizer\ImaticMantisIssueModel;
 use Imatic\Mantis\Synchronizer\ImaticMantisEventListener;
 
@@ -119,9 +120,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             12 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
                  sended
 			"]],
-            13 => ['DropColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
-                 date_submited
-			"]],
         ];
     }
 
@@ -136,7 +134,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             'EVENT_CORE_READY' => 'core_ready_hook',
             'EVENT_UPDATE_BUG_FORM' => 'prevention_catch_event_from_api',
             'EVENT_UPDATE_BUG_STATUS_FORM' => 'prevention_catch_event_from_api',
-            'EVENT_BUGNOTE_ADD_FORM' => 'prevention_catch_event_from_api'
+            'EVENT_BUGNOTE_ADD_FORM' => 'prevention_catch_event_from_api',
         ];
     }
 
@@ -169,13 +167,10 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     public function event_bug_hooks($p_event, BugData $p_bug, $issue_id)
     {
-
         // Prevention before creating an issue from the API
         if (!$_POST['synchronize_issue']) {
             return $p_bug;
         }
-
-
         $issue_model = new ImaticMantisIssueModel();
 
         // If issue is private do not synchronize issue
@@ -188,12 +183,20 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             return $p_bug;
         }
 
+        // Check if issue was synchronized before. For Example issue is changed from private to public, issue must be created first
+        // If is non synch issue event will be changed to EVENT_REPORT_BUG like created issue
+        $logger = new ImaticMantisDbloggerModel();
+        $logs = $logger->imaticGetLogById($p_bug->id);
+
+        if (empty($logs)) {
+            $p_event = 'EVENT_REPORT_BUG';
+        }
+        // End check
 
         $eventListener = new ImaticMantisEventListener;
 
         // constant name of  webhook like : mantis:issue_created -> defined in core/constant.php // Jira use same
         $p_bug->webhookEvent = constant($p_event);
-
         switch ($p_event) {
             case 'EVENT_UPDATE_BUG_DATA':
                 $eventListener->onUpdateIssue($p_bug);
@@ -201,7 +204,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             case
             'EVENT_REPORT_BUG':
                 $eventListener->onNewIssue($p_bug);
-                break;
+                return $p_bug;
             case 'EVENT_BUGNOTE_ADD':
                 $eventListener->onNewBugnote($issue_id, $p_bug);
                 break;

@@ -27,7 +27,6 @@ class ImaticMantisApi
                 if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
                     $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
-
                     $this->imaticCallDbLog($webhook['id'], $webhook['name']);
                 }
             }
@@ -44,12 +43,13 @@ class ImaticMantisApi
         $wh = new ImaticWebhook();
         $webhooks = $wh->getWebhooks();
         foreach ($webhooks as $key => $webhook) {
+            if ($webhook['status'] == 'on') {
 
-            if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
+                if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
-                $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
-
-                $this->imaticCallDbLog($webhook['id'], $webhook['name']);
+                    $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
+                    $this->imaticCallDbLog($webhook['id'], $webhook['name']);
+                }
             }
         }
     }
@@ -59,7 +59,6 @@ class ImaticMantisApi
     {
 
         $issue_json = json_encode($this->issue_data);
-
         $logger = new ImaticMantisDbLogger();
         if ($this->webhook_result['status'] > 205 || $this->webhook_result['status'] == 0) {
             $this->type_results = 'error';
@@ -76,7 +75,7 @@ class ImaticMantisApi
         $logger->setProjectId(bug_get_row($this->issue_data->issue->issue_id)['project_id']); //Optimize  ?
         $logger->setWebhookId($webhook_id);
         $logger->setWebhookName($webhook_name);
-        $logger->setStatusCode($this->webhook_result['status'] );
+        $logger->setStatusCode($this->webhook_result['status']);
         $logger->setIssueJson($issue_json);
         $logger->log();
     }

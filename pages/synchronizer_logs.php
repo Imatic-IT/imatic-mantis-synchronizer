@@ -47,7 +47,17 @@ $previous_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $r
 $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $result_per_page . '&log_page=' . $next_page_number;
 // End Generate previous & next page url
 
-if (!$logs) return;
+if (!$logs){
+    ?>
+    <div class="col-md-12 col-xs-12">
+        <div class="space-10"></div>
+        <div class="space-4"></div>
+    <h1>No logs</h1>
+    </div>
+<?php
+return;
+
+}
 ?>
 
     <div class="col-md-12 col-xs-12">
