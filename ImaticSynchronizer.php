@@ -44,11 +44,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function config(): array
     {
         return [
-            'custom_field' => [
-                'create' => true,
-                'name' => 'Jira issue link',
-                'id' => ''
-            ]
+        
         ];
     }
 
@@ -131,21 +127,12 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             'EVENT_UPDATE_BUG_DATA' => 'event_bug_hooks',
             'EVENT_BUGNOTE_ADD' => 'bugnote_add_hook',
             'EVENT_LAYOUT_BODY_END' => 'layout_body_end_hook',
-            'EVENT_CORE_READY' => 'core_ready_hook',
             'EVENT_UPDATE_BUG_FORM' => 'prevention_catch_event_from_api',
             'EVENT_UPDATE_BUG_STATUS_FORM' => 'prevention_catch_event_from_api',
             'EVENT_BUGNOTE_ADD_FORM' => 'prevention_catch_event_from_api',
         ];
     }
-
-    function core_ready_hook()
-    {
-        $custom_field = plugin_config_get('custom_field');
-        if (!$custom_field['id'] && $custom_field['create'] != false) {
-            require 'core/create_custom_field.php';
-        }
-    }
-
+    
     /*
      * On bugnote create
      */
