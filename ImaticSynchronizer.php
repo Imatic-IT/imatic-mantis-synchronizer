@@ -133,10 +133,10 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         if (!$log){
             return $p_bug;
         }
-
+        
         if ($p_event == 'EVENT_BUGNOTE_ADD') {
             // If threshold is bigger than 50(is ist private view state) send private bugnote also
-            if (plugin_config_get('send_bugnote_threshold') <= 50) {
+            if (plugin_config_get('synch_threshold')['send_bugnote_threshold'] <= 50) {
                 // If issue is private do not synchronize issue
                 if (isset($_POST['private'])) {
                     if ($_POST['private'] == 'on' || $p_bug->view_state == 50) {
@@ -163,7 +163,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         
         if ($p_event == 'EVENT_REPORT_BUG') {
             // If threshold is bigger than 50(is ist private view state) send private issue also
-            if (plugin_config_get('send_issue_threshold') <= 50) {
+            if (plugin_config_get('synch_threshold')['send_issue_threshold'] <= 50) {
                 // If issue is private do not synchronize issue
                 if ($_POST['view_state'] == 50 || $p_bug->view_state == 50) {
                     return $p_bug;
