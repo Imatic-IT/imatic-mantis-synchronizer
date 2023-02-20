@@ -1,9 +1,10 @@
-
 selectMultipleCheckboxex()
+
+filterLogsBuildQuery()
+
 
 function selectMultipleCheckboxex() {
 
-    // let startCheckbox: HTMLInputElement;
     let endCheckbox: HTMLInputElement;
     let checkboxes: NodeListOf<HTMLInputElement>;
 
@@ -18,7 +19,6 @@ function selectMultipleCheckboxex() {
             if (event.shiftKey) {
                 let start = Array.from(checkboxes).indexOf(this);
                 let end = Array.from(checkboxes).indexOf(startCheckbox);
-                // Ak start > end, tak výmena hodnôt
                 if (start > end) {
                     [start, end] = [end, start];
                 }
@@ -26,10 +26,72 @@ function selectMultipleCheckboxex() {
                     checkboxes[j].checked = lastChecked.checked;
                 }
             } else {
-                // Inak nastaviť aktuálny checkbox ako startCheckbox
                 startCheckbox = this;
             }
             lastChecked = this;
         });
     }
+}
+
+
+function filterLogsBuildQuery() {
+
+
+    const logFilterForm = document.querySelector('#log_filter_form') as HTMLFormElement
+
+    logFilterForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+
+
+        const formData = new FormData(logFilterForm);
+
+        const dateRange = formData.get('log_filter_daterange');
+        const issueId = formData.get('issue_id');
+        const bugnoteId = formData.get('bugnote_id');
+        const logLevel = formData.get('log_level');
+        const webhookEvent = formData.get('webhook_event');
+        const resended = formData.get('resended');
+        const [startDate, endDate] = getDateRange(dateRange);
+
+        const params = {
+            'issue_id': issueId,
+            'bugnote_id': bugnoteId,
+            'log_level': logLevel,
+            'webhook_event': webhookEvent,
+            'resended': resended,
+            'start_date': startDate,
+            'end_date': endDate
+        };
+
+
+        const queryString = http_build_query(params);
+
+
+        submitFormWithQueryString(logFilterForm, queryString);
+
+        function getDateRange(dateRange: string): [number, number] {
+            const [startDateStr, endDateStr] = dateRange.split(" - ");
+            const startDateParts = startDateStr.split(".");
+            const endDateParts = endDateStr.split(".");
+
+            const startDate = new Date(Date.UTC(parseInt(startDateParts[2]), parseInt(startDateParts[1]) - 1, parseInt(startDateParts[0]), 0, 0, 0));
+            const endDate = new Date(Date.UTC(parseInt(endDateParts[2]), parseInt(endDateParts[1]) - 1, parseInt(endDateParts[0]), 0, 0, 0));
+
+            return [startDate.getTime() / 1000, endDate.getTime() / 1000];
+        }
+
+
+
+        function http_build_query(params: any): string {
+            const entries = Object.entries(params).filter(([key, value]) => value !== null && value !== undefined && value !== '');
+            const query = new URLSearchParams(entries).toString();
+            return query;
+        }
+
+        function submitFormWithQueryString(form: HTMLFormElement, queryString: string): void {
+            form.action += `&${queryString}`;
+            form.submit();
+        }
+
+    });
 }

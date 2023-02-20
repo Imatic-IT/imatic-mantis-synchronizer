@@ -6,6 +6,8 @@ $(() => {
 
     log_filter_daterange.daterangepicker({
         "locale": {
+            "timePicker": true,
+            "timeZone": "Europe/Prague",
             "format": "D.M.YYYY",
             "separator": " - ",
             "applyLabel": "Potvrdit",

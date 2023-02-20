@@ -6,8 +6,12 @@ class ImaticMantisDbloggerModel
 
     public function imaticLog($issue_data)
     {
-
+    
+        
+        
         $db = db_get_table('imatic_synchronizer_bug_logger');
+        
+        date_default_timezone_set('Europe/Prague');
         $db_now = db_now();
         db_param_push();
         $t_query = 'INSERT INTO ' . $db . '
