@@ -6,8 +6,6 @@ class ImaticMantisDbloggerModel
 
     public function imaticLog($issue_data)
     {
-    
-        
         
         $db = db_get_table('imatic_synchronizer_bug_logger');
         
