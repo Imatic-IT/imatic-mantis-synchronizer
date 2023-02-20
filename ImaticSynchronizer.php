@@ -42,7 +42,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function config(): array
     {
         return [
-            'synch_threhold' => [
+            'synch_threshold' => [
                 'send_issue_threshold' => 50,
                 'send_bugnote_threshold' => 50,
             ]
