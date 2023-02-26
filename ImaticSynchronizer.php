@@ -148,7 +148,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
         $this->event_bug_hooks($p_event, $p_bug, $issue_id);
     
-        return $p_bug;
+        return;
     }
     
     
