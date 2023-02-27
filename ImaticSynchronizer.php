@@ -124,37 +124,38 @@ class ImaticSynchronizerPlugin extends MantisPlugin
      */
     public function bugnote_add_hook($p_event)
     {
-        $issue_id = $_POST['bug_id'];
-        $p_bug = bug_get($issue_id);
-        
-        $db_loger = new ImaticMantisDbloggerModel();
-        $log = $db_loger->imaticGetLogById($issue_id);
-        
-        if (!$log){
-            return $p_bug;
-        }
-        
-        if ($p_event == 'EVENT_BUGNOTE_ADD') {
-            // If threshold is bigger than 50(is ist private view state) send private bugnote also
-            if (plugin_config_get('synch_threshold')['send_bugnote_threshold'] <= 50) {
-                // If issue is private do not synchronize issue
-                if (isset($_POST['private'])) {
-                    if ($_POST['private'] == 'on' || $p_bug->view_state == 50) {
-                        return $p_bug;
+        if (isset($_POST['bug_id'])) {
+            
+            $issue_id = $_POST['bug_id'];
+            $p_bug = bug_get($issue_id);
+            
+            $db_loger = new ImaticMantisDbloggerModel();
+            $log = $db_loger->imaticGetLogById($issue_id);
+            
+            if (!$log) {
+                return $p_bug;
+            }
+            
+            if ($p_event == 'EVENT_BUGNOTE_ADD') {
+                // If threshold is bigger than 50(is ist private view state) send private bugnote also
+                if (plugin_config_get('synch_threshold')['send_bugnote_threshold'] <= 50) {
+                    // If issue is private do not synchronize issue
+                    if (isset($_POST['private'])) {
+                        if ($_POST['private'] == 'on' || $p_bug->view_state == 50) {
+                            return $p_bug;
+                        }
                     }
                 }
             }
+            
+            $this->event_bug_hooks($p_event, $p_bug, $issue_id);
+            
         }
-
-        $this->event_bug_hooks($p_event, $p_bug, $issue_id);
-    
-        return;
     }
     
     
     public function event_bug_hooks($p_event, BugData $p_bug, $issue_id)
     {
-
         // Prevention before creating an issue from the API
         if (!$_POST['synchronize_issue']) {
             return $p_bug;
