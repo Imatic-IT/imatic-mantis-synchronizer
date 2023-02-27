@@ -126,6 +126,7 @@ $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $resul
                                 <option value="">All</option>
                                 <option value="error">Error</option>
                                 <option value="success">Success</option>
+                                <option value="api">Api</option>
                             </select>
                         </td>
                         <td>

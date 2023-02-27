@@ -20,6 +20,11 @@
     color: #FFFFFF;
 }
 
+#logs .api{
+    background-color: #4682B4;
+    color: #FFFFFF;
+}
+
 #logs .not-tried{
     background-color: #DC143C;
     color: #FFFFFF;

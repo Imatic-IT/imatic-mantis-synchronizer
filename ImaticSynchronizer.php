@@ -3,6 +3,7 @@
 require 'core/require.php';
 
 //CONTROLLERS
+use Imatic\Mantis\Synchronizer\ImaticMantisBugnotes;
 use Imatic\Mantis\Synchronizer\ImaticWebhook;
 use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
 
@@ -45,7 +46,8 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             'synch_threshold' => [
                 'send_issue_threshold' => 50,
                 'send_bugnote_threshold' => 50,
-            ]
+            ],
+            'message_api_event' => "This is issue created from API"
         ];
     }
     
@@ -109,14 +111,14 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function hooks(): array
     {
         return [
-            'EVENT_REPORT_BUG_FORM' => 'prevention_catch_event_from_api',
+            'EVENT_REPORT_BUG_FORM' => 'preventionCatchEventFromApi',
             'EVENT_REPORT_BUG' => 'event_bug_hooks',
             'EVENT_UPDATE_BUG_DATA' => 'event_bug_hooks',
             'EVENT_BUGNOTE_ADD' => 'bugnote_add_hook',
             'EVENT_LAYOUT_BODY_END' => 'layout_body_end_hook',
-            'EVENT_UPDATE_BUG_FORM' => 'prevention_catch_event_from_api',
-            'EVENT_UPDATE_BUG_STATUS_FORM' => 'prevention_catch_event_from_api',
-            'EVENT_BUGNOTE_ADD_FORM' => 'prevention_catch_event_from_api',];
+            'EVENT_UPDATE_BUG_FORM' => 'preventionCatchEventFromApi',
+            'EVENT_UPDATE_BUG_STATUS_FORM' => 'preventionCatchEventFromApi',
+            'EVENT_BUGNOTE_ADD_FORM' => 'preventionCatchEventFromApi',];
     }
     
     /*
@@ -158,6 +160,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     {
         // Prevention before creating an issue from the API
         if (!$_POST['synchronize_issue']) {
+            $this->ImaticLogApiIssue($p_event, $p_bug);
             return $p_bug;
         }
         $issue_model = new ImaticMantisIssueModel();
@@ -206,7 +209,35 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         return $p_bug;
     }
     
-    public function prevention_catch_event_from_api()
+    /*
+     * This method need for synchronization, issue before synchronization  is checked if is logged.
+     */
+    public function ImaticLogApiIssue($p_event, $p_bug)
+    {
+        $logger = new ImaticMantisDbLogger();
+        $message = plugin_config_get('message_api_event');
+        
+        // Get last bugnote id
+        if (isset($_POST['bugnote_text'])) {
+            $bugnote_controller = new ImaticMantisBugnotes();
+            $bugnotes = $bugnote_controller->imaticGetAllBugnotes($p_bug->id);
+            $last_bugnote = $bugnote_controller->imaticGetLastBugnote();
+            $logger->setBugnoteId($last_bugnote['id']);
+            
+        }
+
+        $logger->setIssueId($p_bug->id);
+        $logger->setLogLevel('api');
+        $logger->setWebhookEvent(constant($p_event));
+        $logger->setProjectId($p_bug->project_id);
+        $logger->setStatusCode(200);
+        $logger->setIssueJson(json_encode(['message' => $message]));
+        $logger->log();
+        
+        return $p_bug;
+    }
+    
+    public function preventionCatchEventFromApi()
     {
         // If not project id in arr, checkbox will not be created
         if (!$this->ImaticCheckProjectForSyhnchronize()) {
@@ -220,8 +251,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     
     private function ImaticCheckProjectForSyhnchronize()
     {
-        
-        
         $wh = new ImaticWebhook();
         
         $webhooks_projects = $wh->getWebhooksProjects();
