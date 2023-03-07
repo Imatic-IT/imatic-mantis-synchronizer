@@ -4,16 +4,17 @@ require 'core/require.php';
 
 //CONTROLLERS
 use Imatic\Mantis\Synchronizer\ImaticWebhook;
-use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
-
+use Imatic\Mantis\Synchronizer\ImaticMantisIssue;
+use Imatic\Mantis\Synchronizer\ImaticMantisBugnotes;
 
 //MODELS
+use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
 use Imatic\Mantis\Synchronizer\ImaticMantisIssueModel;
+use Imatic\Mantis\Synchronizer\ImaticMantisDbloggerModel;
 use Imatic\Mantis\Synchronizer\ImaticMantisEventListener;
 
 //constant
 require 'core/constant.php';
-
 
 require_api('install_helper_functions_api.php');
 require_api('bug_activity_api.php');
@@ -43,54 +44,41 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function config(): array
     {
         return [
-            'custom_field' => [
-                'create' => true,
-                'name' => 'Jira issue link',
-                'id' => ''
-            ]
+            'synch_threshold' => [
+                'send_issue_threshold' => 50,
+                'send_bugnote_threshold' => 50,
+            ],
+            'message_api_event' => "This is issue created from API"
         ];
     }
 
     public function schema(): array
     {
 
-        // backwards compatibility with plugin version that didn't define schema
-        $t_config_option = 'plugin_' . $this->basename . '_schema';
-        $t_schema = config_get($t_config_option, -1, ALL_USERS, ALL_PROJECTS);
-        if ($t_schema === -1 && db_table_exists(db_get_table('imatic_synchronizer_bug'))) {
-            config_set($t_config_option, -1, ALL_USERS, ALL_PROJECTS);
-        }
-
         return [
             0 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_bug'), "
-				issue_id                        								I,
-				intern_issue                    								I
+                id							I		       PRIMARY NOTNULL AUTOINCREMENT,
+				sync_issue_id               I
 			"]],
-            1 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_bug_queue'), "
-				issue_id                      I,
-                method_type	        		  C(32)             DEFAULT \" ' ' \",
-				resended					  L                 DEFAULT \" '0' \" ,
-				issue						  JSON,
-                last_updated			      I		   NOTNULL  DEFAULT '" . db_now() . "'
-			"]],
-            2 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
+            1 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
 				issue_id                      I,
 				bugnote_id                    I                  DEFAULT \" '0' \" ,
                 log_level   	        	  C(32)	         	 DEFAULT \" ' ' \",
                 webhook_event	        	  C(32)	         	 DEFAULT \" ' ' \",
-                message	        			  C(200)		     DEFAULT \" ' ' \",
-				sended						  L                  DEFAULT \" '0' \" ,               
-			"]],
-            3 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_queue'), "
-				webhook_id						I,
-				webhook_name					C(32)	         	 DEFAULT \" ' ' \"
-			"]],
-            4 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
-				webhook_id						I,
-				webhook_name					C(32)	         	 DEFAULT \" ' ' \"
-			"]],
-            5 => ['AddColumnSQL', [db_get_table('imatic_synchronizer_bug_logger'), "
-                 date_submitted			      I	        NOTNULL  DEFAULT '" . db_now() . "'
+				webhook_id					  I,
+				webhook_name				  C(32)	         	 DEFAULT \" ' ' \",
+                date_submitted			      I	        NOTNULL  DEFAULT '" . db_now() . "',
+                status_code			          c(32),
+                resended					  c(32)              DEFAULT \" ' ' \",
+                issue						  JSON,
+                id							  I		       PRIMARY NOTNULL AUTOINCREMENT
+			"]], 2 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_webhooks'), "
+				id							I		       PRIMARY NOTNULL AUTOINCREMENT,
+                name	        		    C(120)           NOTNULL  ,
+                url	        		        C(200)           NOTNULL  DEFAULT \" ' ' \",
+				status					    C(10)                 DEFAULT \" '0' \" ,
+				projects				    JSON,
+                date_submitted			    I	           NOTNULL  DEFAULT '" . db_now() . "'
 			"]]
         ];
     }
@@ -98,24 +86,15 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function hooks(): array
     {
         return [
-            'EVENT_REPORT_BUG_FORM' => 'prevention_catch_event_from_api',
+            'EVENT_REPORT_BUG_FORM' => 'preventionCatchEventFromApi',
             'EVENT_REPORT_BUG' => 'event_bug_hooks',
             'EVENT_UPDATE_BUG_DATA' => 'event_bug_hooks',
             'EVENT_BUGNOTE_ADD' => 'bugnote_add_hook',
             'EVENT_LAYOUT_BODY_END' => 'layout_body_end_hook',
-            'EVENT_CORE_READY' => 'core_ready_hook',
-            'EVENT_UPDATE_BUG_FORM' => 'prevention_catch_event_from_api',
-            'EVENT_UPDATE_BUG_STATUS_FORM' => 'prevention_catch_event_from_api',
-            'EVENT_BUGNOTE_ADD_FORM' => 'prevention_catch_event_from_api'
+            'EVENT_UPDATE_BUG_FORM' => 'preventionCatchEventFromApi',
+            'EVENT_UPDATE_BUG_STATUS_FORM' => 'preventionCatchEventFromApi',
+            'EVENT_BUGNOTE_ADD_FORM' => 'preventionCatchEventFromApi',
         ];
-    }
-
-    function core_ready_hook()
-    {
-        $custom_field = plugin_config_get('custom_field');
-        if (!$custom_field['id'] && $custom_field['create'] != false) {
-            require 'core/create_custom_field.php';
-        }
     }
 
     /*
@@ -123,34 +102,43 @@ class ImaticSynchronizerPlugin extends MantisPlugin
      */
     public function bugnote_add_hook($p_event)
     {
-        $issue_id = $_POST['bug_id'];
-        $p_bug = bug_get($issue_id);
+        if (isset($_POST['bug_id'])) {
+            $issue_id = $_POST['bug_id'];
+            $p_bug = bug_get($issue_id);
 
-        // If issue is private do not synchronize issue
-        if ($p_bug->view_state == 50) {
-            return $p_bug;
+            if ($p_event == 'EVENT_BUGNOTE_ADD') {
+                // If threshold is bigger than 50(is ist private view state) send private bugnote also
+                if (plugin_config_get('synch_threshold')['send_bugnote_threshold'] <= 50) {
+                    // If issue is private do not synchronize issue
+                    if (isset($_POST['private'])) {
+                        if ($_POST['private'] == 'on' || $p_bug->view_state == 50) {
+                            return $p_bug;
+                        }
+                    }
+                }
+            }
+
+            $this->event_bug_hooks($p_event, $p_bug, $issue_id);
         }
-
-        $this->event_bug_hooks($p_event, $p_bug, $issue_id);
-
-        return;
     }
 
 
     public function event_bug_hooks($p_event, BugData $p_bug, $issue_id)
     {
-
-        // Prevention before creating an issue from the API
+        // Prevention before creating an issue from the API, but set issue into synchronized issues
         if (!$_POST['synchronize_issue']) {
+            $this->ImaticLogApiIssue($p_event, $p_bug);
             return $p_bug;
         }
 
-
-        $issue_model = new ImaticMantisIssueModel();
-
-        // If issue is private do not synchronize issue
-        if ($_POST['view_state'] == 50 || $p_bug->view_state == 50) {
-            return $p_bug;
+        if ($p_event == 'EVENT_REPORT_BUG') {
+            // If threshold is bigger than 50(is ist private view state) send private issue also
+            if (plugin_config_get('synch_threshold')['send_issue_threshold'] <= 50) {
+                // If issue is private do not synchronize issue
+                if ($_POST['view_state'] == 50 || $p_bug->view_state == 50) {
+                    return $p_bug;
+                }
+            }
         }
 
         // Check if project is in config
@@ -158,24 +146,20 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             return $p_bug;
         }
 
-        // Check if issue is intern, if not, than can be synchronized
-//        if ($issue_model->imaticCheckIfIssueIsIntern($p_bug->id)) {
-//            return $p_bug;
-//        }
+        // Check if issue was synchronized before. For Example issue is changed from private to public, issue must be created first
+        // If is non synch issue event will be changed to EVENT_REPORT_BUG like created issue
+        $issue = new ImaticMantisIssue();
+        $issue->imaticSyncGetIssue($p_bug->id);
+
+        if (empty($log)) {
+            $p_event = 'EVENT_REPORT_BUG';
+        }
+        // End check
 
         $eventListener = new ImaticMantisEventListener;
 
         // constant name of  webhook like : mantis:issue_created -> defined in core/constant.php // Jira use same
         $p_bug->webhookEvent = constant($p_event);
-
-        //Check if issue is intern and save isssue as intern to DB // case update issue check if issue is intern if is intern synchronize will be stopped
-//        if (isset($_POST['synchronize_issue']) && $_POST['synchronize_issue'] == 0) {
-//
-//            $issue_model->imaticInsertInternIssue($issue_id);
-//
-//            return $p_bug;
-//        }
-
         switch ($p_event) {
             case 'EVENT_UPDATE_BUG_DATA':
                 $eventListener->onUpdateIssue($p_bug);
@@ -183,14 +167,47 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             case
             'EVENT_REPORT_BUG':
                 $eventListener->onNewIssue($p_bug);
-                break;
+                return $p_bug;
             case 'EVENT_BUGNOTE_ADD':
                 $eventListener->onNewBugnote($issue_id, $p_bug);
                 break;
         }
+        return $p_bug;
     }
 
-    public function prevention_catch_event_from_api()
+    /*
+     * This method need for synchronization, issue before synchronization  is checked if is logged.
+     */
+    public function ImaticLogApiIssue($p_event, $p_bug)
+    {
+        //Log issue id into bug table, for check if issue is synchronized
+        $issue = new ImaticMantisIssue();
+        $issue->imaticInsertSyncIssueId($p_bug->id);
+        //--
+
+        $logger = new ImaticMantisDbLogger();
+        $message = plugin_config_get('message_api_event');
+
+        // Get last bugnote id
+        if (isset($_POST['bugnote_text'])) {
+            $bugnote_controller = new ImaticMantisBugnotes();
+            $bugnotes = $bugnote_controller->imaticGetAllBugnotes($p_bug->id);
+            $last_bugnote = $bugnote_controller->imaticGetLastBugnote();
+            $logger->setBugnoteId($last_bugnote['id']);
+        }
+
+        $logger->setIssueId($p_bug->id);
+        $logger->setLogLevel('api');
+        $logger->setWebhookEvent(constant($p_event));
+        $logger->setProjectId($p_bug->project_id);
+        $logger->setStatusCode(200);
+        $logger->setIssueJson(json_encode(['message' => $message]));
+        $logger->log();
+
+        return $p_bug;
+    }
+
+    public function preventionCatchEventFromApi()
     {
         // If not project id in arr, checkbox will not be created
         if (!$this->ImaticCheckProjectForSyhnchronize()) {
@@ -204,12 +221,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     private function ImaticCheckProjectForSyhnchronize()
     {
-
-
         $wh = new ImaticWebhook();
 
         $webhooks_projects = $wh->getWebhooksProjects();
-
 
         // If plugin ImaticProjectSelection not installed this imaticProject not exists in url
         if (!empty($_GET['imaticProject'])) {
@@ -219,12 +233,9 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         }
 
         if (!in_array($project_id, $webhooks_projects)) {
-
             return;
-
         }
         return true;
-
     }
 
     public function layout_body_end_hook($p_event)

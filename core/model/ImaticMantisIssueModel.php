@@ -55,91 +55,41 @@ class ImaticMantisIssueModel
     }
 
 
-    public function imaticInsertNotSuccessIssueData($issue, $issue_id, $method_type, $webhook_id, $webhook_name)
+
+    public function imaticModelInsertSyncIssueId($issue_id)
     {
-        $db = db_get_table('imatic_synchronizer_bug_queue');
+        if (!$this->imaticModelSyncGetIssue($issue_id)) {
 
-        $issue = json_encode($issue);
+            $db = db_get_table('imatic_synchronizer_bug');
 
-        $db_now = db_now();
-        db_param_push();
-        $t_query = 'INSERT INTO ' . $db . '
-                        ( issue_id, method_type, issue, last_updated, webhook_id, webhook_name)
-                      VALUES
-                        ( ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ', ' . db_param() . ')';
+            db_param_push();
+            $t_query = 'INSERT INTO ' . $db . "
+            ( sync_issue_id)
+            VALUES
+            ( " . db_param() . ')';
 
-        db_query($t_query, array((int)$issue_id, $method_type, $issue, $db_now, $webhook_id, $webhook_name));
+            db_query($t_query, array((int)$issue_id));
 
-        return db_affected_rows($db);
-    }
-
-    public function imaticUpdatdeSynchronizedStatusInQueue($self_issue_id, $method_type, $status = false)
-    {
-        $db = db_get_table('imatic_synchronizer_bug_queue');
-
-        $db_now = db_now();
-        db_param_push();
-
-        $sql = "UPDATE " . $db . " SET synchronized=$status WHERE issue_id=$self_issue_id AND method_type = '$method_type'";
-
-        db_query($sql);
-
-
-        $rows_updated = db_affected_rows();
-        return $rows_updated;
-    }
-
-
-    public function imaticQueueIdAndMethodExists($self_issue_id, $method_type)
-    {
-
-        $db = db_get_table('imatic_synchronizer_bug_queue');
-
-        $t_query = "SELECT * From $db WHERE issue_id= $self_issue_id AND method_type = '$method_type'";
-
-
-        $t_result = db_query($t_query);
-
-        $t_res = [];
-        while ($row = db_fetch_array($t_result)) {
-            $t_res[] = $row;
+            return db_affected_rows($db);
         }
-
-        return $t_res;
+        return ;
     }
 
-    public function imaticInsertInternIssue($issue_id)
+
+    public function imaticModelSyncGetIssue($issue_id)
     {
 
         $db = db_get_table('imatic_synchronizer_bug');
 
-        db_param_push();
-        $t_query = 'INSERT INTO ' . $db . "
-                        ( issue_id, intern_issue)
-                      VALUES
-                        ( " . db_param() . ', ' . db_param() . ')';
-
-        db_query($t_query, array((int)$issue_id, 1,));
-
-        return db_affected_rows($db);
-    }
-
-
-    public function imaticCheckIfIssueIsIntern($issue_id)
-    {
-
-        $db = db_get_table('imatic_synchronizer_bug');
-
-        $t_query = 'SELECT intern_issue
-                              FROM      ' . $db . '   WHERE issue_id= ' . $issue_id;
+        $t_query = 'SELECT sync_issue_id
+                              FROM      ' . $db . '   WHERE sync_issue_id= ' . $issue_id;
 
         $t_result = db_query($t_query);
         $t_row = db_fetch_array($t_result);
 
-        if (isset($t_row['intern_issue']) && !empty($t_row['intern_issue'])) {
-            return $t_row['intern_issue'];
+        if (isset($t_row['sync_issue_id']) && !empty($t_row['sync_issue_id'])) {
+            return $t_row['sync_issue_id'];
         }
         return;
     }
-
 }
