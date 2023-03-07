@@ -124,9 +124,15 @@ $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $resul
                         <td>
                             <select class="log_filter" name="log_level" id="log_level_filter">
                                 <option value="">All</option>
-                                <option value="error">Error</option>
-                                <option value="success">Success</option>
-                                <option value="api">Api</option>
+                                <option <?php if (isset($params['log_level']) && $params['log_level'] == 'error') {
+                                        echo 'selected';
+                                } ?>  value="error">Error</option>
+                                <option <?php if (isset($params['log_level']) && $params['log_level'] == 'success') {
+                                        echo 'selected';
+                                } ?> value="success">Success</option>
+                                <option <?php if (isset($params['log_level']) && $params['log_level'] == 'api') {
+                                        echo 'selected';
+                                } ?> value="api">Api</option>
                             </select>
                         </td>
                         <td>
@@ -193,9 +199,9 @@ $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $resul
                 for ($i = 1; $i <= $total_pages; $i++) {
                     if ($i === $log_page) {
                         echo '<li class="page-item active disabled"><a class="page-link" href="' . plugin_page("synchronizer_logs") . '&result_per_page=' . $result_per_page . '&log_page=' . $i . '& ' . $query . '"> ' . $i . ' </a></li>';
-                        
+
                     } else {
-                        
+
                         echo '<li class="page-item"><a class="page-link" href="' . plugin_page("synchronizer_logs") . '&result_per_page=' . $result_per_page . '&log_page=' . $i . '& ' . $query . '" > ' . $i . ' </a></li>';
                     }
                 }
@@ -220,7 +226,7 @@ $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $resul
                                 <?php
                                 unset($logs[0]['id']);
                                 foreach ($logs[0] as $key => $log) {
-                                    
+
                                     echo '<td>' . ucfirst(str_replace("_", " ", $key)) . '</td>';
                                 }
                                 ?>
@@ -234,9 +240,8 @@ $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $resul
                                 $time = date("H:i:s", $log['date_submitted']);
                                 ?>
                                 <tr>
-                                    <td><input type="checkbox" name="logs_id_arr[]" value="<?php echo $log['id'] ?>"
-                                    </td>
-                                    <td><?php echo $log['issue_id'] ?></td>
+                                    <td><input type="checkbox" name="logs_id_arr[]" value="<?php echo $log['id'] ?>"></td>
+                                    <td><a href="view.php?id=<?php echo $log['issue_id'] ?>"><?php echo $log['issue_id'] ?></a></td>
                                     <td><?php echo $log['bugnote_id'] ?></td>
                                     <td class="<?php echo $log['log_level'] ?>"><?php echo $log['log_level'] ?></td>
                                     <td><?php echo $log['webhook_event'] ?></td>
@@ -283,7 +288,7 @@ $next_page_url = plugin_page("synchronizer_logs") . '&result_per_page=' . $resul
                                     <!-- End the modal -->
 
                                 </div>
-                            
+
                             <?php endforeach; ?>
                             </tbody>
                         </table>
