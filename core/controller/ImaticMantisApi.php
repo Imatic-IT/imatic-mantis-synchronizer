@@ -57,6 +57,10 @@ class ImaticMantisApi
 
     private function imaticCallDbLog($webhook_id, $webhook_name)
     {
+        //Log issue id into bug table, for check if issue is synchronized
+        $issue = new ImaticMantisIssue();
+        $issue->imaticInsertSyncIssueId($this->issue_data->issue->issue_id);
+        //--
 
         $issue_json = json_encode($this->issue_data);
         $logger = new ImaticMantisDbLogger();

@@ -3,13 +3,14 @@
 require 'core/require.php';
 
 //CONTROLLERS
-use Imatic\Mantis\Synchronizer\ImaticMantisBugnotes;
 use Imatic\Mantis\Synchronizer\ImaticWebhook;
-use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
+use Imatic\Mantis\Synchronizer\ImaticMantisIssue;
+use Imatic\Mantis\Synchronizer\ImaticMantisBugnotes;
 
 //MODELS
-use Imatic\Mantis\Synchronizer\ImaticMantisDbloggerModel;
+use Imatic\Mantis\Synchronizer\ImaticMantisDbLogger;
 use Imatic\Mantis\Synchronizer\ImaticMantisIssueModel;
+use Imatic\Mantis\Synchronizer\ImaticMantisDbloggerModel;
 use Imatic\Mantis\Synchronizer\ImaticMantisEventListener;
 
 //constant
@@ -92,7 +93,8 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             'EVENT_LAYOUT_BODY_END' => 'layout_body_end_hook',
             'EVENT_UPDATE_BUG_FORM' => 'preventionCatchEventFromApi',
             'EVENT_UPDATE_BUG_STATUS_FORM' => 'preventionCatchEventFromApi',
-            'EVENT_BUGNOTE_ADD_FORM' => 'preventionCatchEventFromApi',];
+            'EVENT_BUGNOTE_ADD_FORM' => 'preventionCatchEventFromApi',
+        ];
     }
 
     /*
@@ -101,16 +103,8 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function bugnote_add_hook($p_event)
     {
         if (isset($_POST['bug_id'])) {
-
             $issue_id = $_POST['bug_id'];
             $p_bug = bug_get($issue_id);
-
-            $db_loger = new ImaticMantisDbloggerModel();
-            $log = $db_loger->imaticGetLogById($issue_id);
-
-            if (!$log) {
-                return $p_bug;
-            }
 
             if ($p_event == 'EVENT_BUGNOTE_ADD') {
                 // If threshold is bigger than 50(is ist private view state) send private bugnote also
@@ -125,19 +119,17 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             }
 
             $this->event_bug_hooks($p_event, $p_bug, $issue_id);
-
         }
     }
 
 
     public function event_bug_hooks($p_event, BugData $p_bug, $issue_id)
     {
-        // Prevention before creating an issue from the API
+        // Prevention before creating an issue from the API, but set issue into synchronized issues
         if (!$_POST['synchronize_issue']) {
             $this->ImaticLogApiIssue($p_event, $p_bug);
             return $p_bug;
         }
-        $issue_model = new ImaticMantisIssueModel();
 
         if ($p_event == 'EVENT_REPORT_BUG') {
             // If threshold is bigger than 50(is ist private view state) send private issue also
@@ -156,13 +148,14 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
         // Check if issue was synchronized before. For Example issue is changed from private to public, issue must be created first
         // If is non synch issue event will be changed to EVENT_REPORT_BUG like created issue
-        $logger = new ImaticMantisDbloggerModel();
-        $log = $logger->imaticGetLogById($p_bug->id);
+        $issue = new ImaticMantisIssue();
+        $synch_issue_id = $issue->imaticSyncGetIssue($p_bug->id);
 
-        if (empty($log)) {
+        if (empty($synch_issue_id)) {
             $p_event = 'EVENT_REPORT_BUG';
         }
         // End check
+
 
         $eventListener = new ImaticMantisEventListener;
 
@@ -188,6 +181,11 @@ class ImaticSynchronizerPlugin extends MantisPlugin
      */
     public function ImaticLogApiIssue($p_event, $p_bug)
     {
+        //Log issue id into bug table, for check if issue is synchronized
+        $issue = new ImaticMantisIssue();
+        $issue->imaticInsertSyncIssueId($p_bug->id);
+        //--
+
         $logger = new ImaticMantisDbLogger();
         $message = plugin_config_get('message_api_event');
 
@@ -197,7 +195,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             $bugnotes = $bugnote_controller->imaticGetAllBugnotes($p_bug->id);
             $last_bugnote = $bugnote_controller->imaticGetLastBugnote();
             $logger->setBugnoteId($last_bugnote['id']);
-
         }
 
         $logger->setIssueId($p_bug->id);
@@ -240,7 +237,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             return;
         }
         return true;
-
     }
 
     public function layout_body_end_hook($p_event)
