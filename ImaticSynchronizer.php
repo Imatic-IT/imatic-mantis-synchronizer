@@ -26,6 +26,7 @@ require_once(__DIR__ . '/../../api/soap/mc_issue_api.php');
 require_once(__DIR__ . '/../../api/soap/mc_project_api.php');
 
 
+
 class ImaticSynchronizerPlugin extends MantisPlugin
 {
 
