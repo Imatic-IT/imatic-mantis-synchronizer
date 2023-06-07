@@ -38,7 +38,7 @@ class ImaticWebhook
     public function createWebhook($webhook)
     {
         $this->data = $webhook;
-        $new_webhook = ['name' => $this->data['name'], 'url' => $this->data['url'], 'status' => $this->data['status'] ?: '', 'projects' => json_encode($this->data['projects']) ?: '',];
+        $new_webhook = ['name' => $this->data['name'], 'url' => $this->data['url'], 'status' => $this->data['status'] ?: '', 'projects' => json_encode($this->data['projects']) ?: '', 'events' => json_encode($this->data['events']) ?: '',];
         $this->webhook_model->saveWebhook($new_webhook);
         header('Location: ' . $_SERVER['HTTP_REFERER']);
     }
@@ -86,6 +86,33 @@ class ImaticWebhook
         return $webhook;
     }
 
+    public function getEnabledWebhooks($event)
+    {
+        $webhooks = $this->webhook_model->imaticGetEnadbledWebhooks();
+        $enabledWebhooks = [];
+
+        foreach ($webhooks as $webhook) {
+            if (isset($webhook['events']) && !empty($webhook['events'])) {
+                $events = isset($webhook['events']) ? $webhook['events'] : [];
+                if ($this->isEnabledEvent($events, $event)) {
+                    $enabledWebhooks[] = $webhook;
+                }
+            }
+        }
+
+        return $enabledWebhooks;
+
+    }
+
+    public function isEnabledEvent($webhookEvents, $event)
+    {
+        $webhookEvents = json_decode($webhookEvents, true);
+
+        if (is_array($webhookEvents)) {
+            return in_array($event, $webhookEvents);
+        }
+        return false;
+    }
 
     /**
      * @param $sended_data
@@ -118,7 +145,6 @@ class ImaticWebhook
      */
     public function getWebhooksProjects()
     {
-
         $webhooks = $this->getWebhooks();
         $projects = [];
         if (!$webhooks) {

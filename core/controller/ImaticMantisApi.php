@@ -18,21 +18,18 @@ class ImaticMantisApi
     {
         $this->issue_data = $issue_data;
         $this->event_issue_type = EVENT_REPORT_BUG;
-        //-----------------------
+
         $wh = new ImaticWebhook();
-        $webhooks = $wh->getWebhooks();
+        $webhooks = $wh->getEnabledWebhooks(ISSUE_CREATED);
+
         foreach ($webhooks as $key => $webhook) {
-            if ($webhook['status'] == 'on') {
+            if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
-                if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
-
-                    $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
-                    $this->imaticCallDbLog($webhook['id'], $webhook['name']);
-                }
+                $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
+                $this->imaticCallDbLog($webhook['id'], $webhook['name']);
             }
         }
     }
-
 
     public function updateIssue($issue_data, $note = null)
     {
@@ -41,15 +38,13 @@ class ImaticMantisApi
         // If event is update or update->created bugnote
         if ($this->event_issue_type = isset($this->issue_data->notes) && !empty($this->issue_data->notes) ? EVENT_BUGNOTE_ADD : EVENT_UPDATE_BUG_DATA) ;
         $wh = new ImaticWebhook();
-        $webhooks = $wh->getWebhooks();
+        $webhooks = $wh->getEnabledWebhooks(ISSUE_UPDATED);
         foreach ($webhooks as $key => $webhook) {
-            if ($webhook['status'] == 'on') {
 
-                if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
+            if (in_array($issue_data->issue->project_id, $webhook['projects'])) {
 
-                    $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
-                    $this->imaticCallDbLog($webhook['id'], $webhook['name']);
-                }
+                $this->webhook_result = $wh->sendWebhook($issue_data, $webhook['url']);
+                $this->imaticCallDbLog($webhook['id'], $webhook['name']);
             }
         }
     }

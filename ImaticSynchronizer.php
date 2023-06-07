@@ -76,6 +76,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 			"]], 2 => ['CreateTableSQL', [db_get_table('imatic_synchronizer_webhooks'), "
 				id							I		       PRIMARY NOTNULL AUTOINCREMENT,
                 name	        		    C(120)           NOTNULL  ,
+                events	        		    JSON,
                 url	        		        C(200)           NOTNULL  DEFAULT \" ' ' \",
 				status					    C(10)                 DEFAULT \" '0' \" ,
 				projects				    JSON,
@@ -108,7 +109,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             $p_bug = bug_get($issue_id);
 
             if ($p_event == 'EVENT_BUGNOTE_ADD') {
-                // If threshold is bigger than 50(is ist private view state) send private bugnote also
+                // If threshold is bigger than 50(its private view state) send private bugnote also
                 if (plugin_config_get('synch_threshold')['send_bugnote_threshold'] <= 50) {
                     // If issue is private do not synchronize issue
                     if (isset($_POST['private'])) {
@@ -251,7 +252,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         //SELECT 2
         echo '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/select2.min.css') . '" />';
         echo '<script  src="' . plugin_file('js/select2.full.min.js') . '"></script>';
-        echo '<script  src="' . plugin_file('js/webhook.js') . '&v=' . $this->version . '"></script>';
+        echo '<script  src="' . plugin_file('js/min/webhook.min.js') . '&v=' . $this->version . '"></script>';
 
         // Date range picker from https://daterangepicker.com/
         echo '<link rel="stylesheet" type="text/css" href="' . plugin_file('css/daterangepicker.css') . '" />';

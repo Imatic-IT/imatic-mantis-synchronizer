@@ -22,7 +22,6 @@ $(document).ready(function () {
 
         delete_webhook_btn.hide();
 
-
         submit_form_button.attr("value", "Create");
         webhook_input_method.attr("value", "create");
 
@@ -33,6 +32,11 @@ $(document).ready(function () {
 
 
         project_select2.val("").trigger("change");
+
+        $('input[name="events[]"]').each(function () {
+            $(this).prop('checked', false);
+
+        });
 
         create_webhook_form.find("input").each(function (e, i) {
         });
@@ -46,6 +50,12 @@ $(document).ready(function () {
 
         _this.on("click ", function (e) {
             e.preventDefault();
+
+
+            // Un-check all
+            $('input[name="events[]"]').each(function () {
+                $(this).prop('checked', false);
+            });
 
             let data = $(this).find("a").data();
             let actionUrl = $(this).find("a").attr("href");
@@ -77,6 +87,21 @@ $(document).ready(function () {
                     let status;
 
                     if (response) {
+
+                        var events = JSON.parse(response.events);
+
+                        if (events) {
+
+                            $('input[name="events[]"]').each(function () {
+                                // $(this).prop('checked', false);
+                                var value = $(this).val();
+                                // console.log(value)
+                                if (events.includes(value)) {
+                                    $(this).prop('checked', true);
+                                }
+                            });
+                        }
+
                         name_input.val(response.name);
                         url_input.val(response.url);
                         webhook_id_input.val(data.webhook_id)

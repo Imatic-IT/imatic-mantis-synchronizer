@@ -53,15 +53,28 @@ include 'links.php';
                     <label for="url">URL</label><br>
                     <input style="width: 60%;" id="webhook_url" class="" type="text" name="url">
                     <br>
+                    <hr>
 
-                    <label for="status">Status</label><br>
+                    <label for="status"><strong>Status</strong></label><br>
                     <label for="status">Enabled</label>
                     <input id="webhook_status" type="checkbox" name="status">
                     <br>
+                    <hr>
 
+                    <label for="events"><strong>Events</strong></label><br>
+                    <label for="event_issue_created">Issue created</label>
+                    <input type="checkbox" name="events[]" value="1">
+                    <br>
+                    <label for="event_issue_updated">Issue updated</label>
+                    <input type="checkbox" name="events[]" value="2">
+                    <br>
+                    <label for="event_comment_created">Comment created</label>
+                    <input type="checkbox" name="events[]" value="3">
+                    <br>
+                    <hr>
 
                     <div class="">
-                        <label for="projects">Choose projects</label><br>
+                        <label for="projects"><strong>Choose projects</strong></label><br>
                         <select id="webhook_projects" style="width: 60%;" class="project_select_two" name="projects[]"
                                 multiple="multiple">
                             <?php
@@ -76,7 +89,8 @@ include 'links.php';
 
 
                     <input id="submit-form" class="btn btn-primary btn-sm" type="submit" value="Create">
-                    <input id="delete-webhook" formaction="<?php echo plugin_page('webhook_delete')?>" style="display: none" class="btn btn-danger btn-sm" type="submit" value="Delete">
+                    <input id="delete-webhook" formaction="<?php echo plugin_page('webhook_delete') ?>"
+                           style="display: none" class="btn btn-danger btn-sm" type="submit" value="Delete">
 
                 </form>
             </div>

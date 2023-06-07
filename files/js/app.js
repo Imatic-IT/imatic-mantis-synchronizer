@@ -28,6 +28,9 @@ function selectMultipleCheckboxex() {
 }
 function filterLogsBuildQuery() {
     const logFilterForm = document.querySelector('#log_filter_form');
+
+    if (!logFilterForm) return;
+
     logFilterForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const formData = new FormData(logFilterForm);
