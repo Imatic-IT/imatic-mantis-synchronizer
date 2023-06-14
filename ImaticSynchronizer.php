@@ -26,7 +26,6 @@ require_once(__DIR__ . '/../../api/soap/mc_issue_api.php');
 require_once(__DIR__ . '/../../api/soap/mc_project_api.php');
 
 
-
 class ImaticSynchronizerPlugin extends MantisPlugin
 {
 
@@ -49,7 +48,11 @@ class ImaticSynchronizerPlugin extends MantisPlugin
                 'send_issue_threshold' => 50,
                 'send_bugnote_threshold' => 50,
             ],
-            'message_api_event' => "This is issue created from API"
+            'message_api_event' => "This is issue created from API",
+            'allowed_pages' => array(
+                'bug_update.php',
+                'bug_report.php',
+                'bugnote_add.php')
         ];
     }
 
@@ -88,14 +91,10 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     public function hooks(): array
     {
         return [
-            'EVENT_REPORT_BUG_FORM' => 'preventionCatchEventFromApi',
             'EVENT_REPORT_BUG' => 'event_bug_hooks',
             'EVENT_UPDATE_BUG_DATA' => 'event_bug_hooks',
             'EVENT_BUGNOTE_ADD' => 'bugnote_add_hook',
             'EVENT_LAYOUT_BODY_END' => 'layout_body_end_hook',
-            'EVENT_UPDATE_BUG_FORM' => 'preventionCatchEventFromApi',
-            'EVENT_UPDATE_BUG_STATUS_FORM' => 'preventionCatchEventFromApi',
-            'EVENT_BUGNOTE_ADD_FORM' => 'preventionCatchEventFromApi',
         ];
     }
 
@@ -127,8 +126,10 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
     public function event_bug_hooks($p_event, BugData $p_bug, $issue_id)
     {
-        // Prevention before creating an issue from the API, but set issue into synchronized issues
-        if (!$_POST['synchronize_issue']) {
+
+        // Check if the current PHP script is in the allowed pages
+        if (!$this->checkAllowedPage()) {
+            // The event was not triggered from an allowed page
             $this->ImaticLogApiIssue($p_event, $p_bug);
             return $p_bug;
         }
@@ -143,7 +144,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
             }
         }
 
-        // Check if project is in config
+        // Check if project is webhooks
         if (!$this->ImaticCheckProjectForSyhnchronize()) {
             return $p_bug;
         }
@@ -178,6 +179,15 @@ class ImaticSynchronizerPlugin extends MantisPlugin
         return $p_bug;
     }
 
+    public function checkAllowedPage()
+    {
+        // Define the list of pages where you want to allow the event
+        $allowedPages = plugin_config_get('allowed_pages');
+        $scriptName = basename($_SERVER['SCRIPT_FILENAME']);
+
+        return in_array($scriptName, (array)$allowedPages);
+    }
+
     /*
      * This method need for synchronization, issue before synchronization  is checked if is logged.
      */
@@ -209,18 +219,6 @@ class ImaticSynchronizerPlugin extends MantisPlugin
 
         return $p_bug;
     }
-
-    public function preventionCatchEventFromApi()
-    {
-        // If not project id in arr, checkbox will not be created
-        if (!$this->ImaticCheckProjectForSyhnchronize()) {
-            return;
-        }
-
-        // For Prevent catching event from API (API POST request does not have this $_POST field and method event_bug_hooks will not send this issue from API like self created issue )
-        require __DIR__ . '/inc/synchronize_issue_checkbox.php';
-    }
-
 
     private function ImaticCheckProjectForSyhnchronize()
     {

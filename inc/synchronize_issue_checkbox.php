@@ -1,1 +1,0 @@
-<input name="synchronize_issue" type="hidden" value="1">
