@@ -19,12 +19,6 @@ require 'core/constant.php';
 require_api('install_helper_functions_api.php');
 require_api('bug_activity_api.php');
 
-require_once(__DIR__ . '/../../api/soap/mc_account_api.php');
-require_once(__DIR__ . '/../../api/soap/mc_api.php');
-require_once(__DIR__ . '/../../api/soap/mc_enum_api.php');
-require_once(__DIR__ . '/../../api/soap/mc_issue_api.php');
-require_once(__DIR__ . '/../../api/soap/mc_project_api.php');
-
 
 class ImaticSynchronizerPlugin extends MantisPlugin
 {
