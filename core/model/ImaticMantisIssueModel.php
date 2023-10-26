@@ -18,7 +18,6 @@ class ImaticMantisIssueModel
      */
     public function imaticParseData($issue_data): stdClass
     {
-
         $this->issue_data = $issue_data;
         $this->parsed_issue_data = [];
         $this->parsed_issue_data_object = new stdClass;
@@ -39,16 +38,16 @@ class ImaticMantisIssueModel
         $p->issue->additional_information = $this->issue_data->additional_information;
         $p->issue->category = (object)[
             'id' => $this->issue_data->category_id,
-            'name' => category_get_name($this->issue_data->category_id),
+            'name' => $this->issue_data->category_id ? category_get_name($this->issue_data->category_id) : '',
         ];
         $p->issue->handler = (object)[
             'name' => user_get_name($this->issue_data->handler_id),
         ];
-        $p->issue->view_state = (object)mci_enum_get_array_by_id($this->issue_data->view_state, 'view_state', $this->p_lang);
-        $p->issue->status = (object)mci_enum_get_array_by_id($this->issue_data->status, 'status', $this->p_lang);
-        $p->issue->priority = (object)mci_enum_get_array_by_id($this->issue_data->priority, 'priority', $this->p_lang);
-        $p->issue->severity = (object)mci_enum_get_array_by_id($this->issue_data->severity, 'severity', $this->p_lang);
-        $p->issue->reproducibility = (object)mci_enum_get_array_by_id($this->issue_data->reproducibility, 'reproducibility', $this->p_lang);
+        $p->issue->view_state = (object)imatic_mci_enum_get_array_by_id($this->issue_data->view_state, 'view_state', $this->p_lang);
+        $p->issue->status = (object)imatic_mci_enum_get_array_by_id($this->issue_data->status, 'status', $this->p_lang);
+        $p->issue->priority = (object)imatic_mci_enum_get_array_by_id($this->issue_data->priority, 'priority', $this->p_lang);
+        $p->issue->severity = (object)imatic_mci_enum_get_array_by_id($this->issue_data->severity, 'severity', $this->p_lang);
+        $p->issue->reproducibility = (object)imatic_mci_enum_get_array_by_id($this->issue_data->reproducibility, 'reproducibility', $this->p_lang);
         $p->issue->sticky = (object)((bool)$this->issue_data->sticky ? 'true' : 'false');
 
         return $p;

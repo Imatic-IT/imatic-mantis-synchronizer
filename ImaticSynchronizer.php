@@ -1,6 +1,7 @@
 <?php
 
 require 'core/require.php';
+require 'core/functions.php';
 
 //CONTROLLERS
 use Imatic\Mantis\Synchronizer\ImaticWebhook;
@@ -27,7 +28,7 @@ class ImaticSynchronizerPlugin extends MantisPlugin
     {
         $this->name = 'Imatic Mantis Synchronizer';
         $this->description = 'Synchronize Mantis';
-        $this->version = '0.0.1';
+        $this->version = '0.1.1';
         $this->page = 'config';
         $this->requires = array('MantisCore' => '2.0.0');
         $this->author = 'Imatic Software s.r.o.';
